@@ -40,6 +40,7 @@ import {
 } from "@/lib/localStorage"
 import { cn } from "@/lib/utils"
 import { PREDEFINED_UNITS, canConvertUnit, convertQuantity, getUnitByShortName } from "@/lib/units"
+import Image from "next/image"
 
 interface ExtendedSaleItem extends SaleItem {
   saleUnit: string // The unit being sold (e.g., "ml" when selling from "l")
@@ -152,12 +153,12 @@ export default function POSPage() {
         cart.map((item) =>
           item.productId === selectedProduct.id && item.saleUnit === customUnit
             ? {
-                ...item,
-                saleQuantity: newSaleQty,
-                baseQuantity: newBaseQty,
-                quantity: newBaseQty, // Base unit quantity for backend
-                subtotal: newBaseQty * item.unitPrice,
-              }
+              ...item,
+              saleQuantity: newSaleQty,
+              baseQuantity: newBaseQty,
+              quantity: newBaseQty, // Base unit quantity for backend
+              subtotal: newBaseQty * item.unitPrice,
+            }
             : item,
         ),
       )
@@ -315,8 +316,8 @@ export default function POSPage() {
             </thead>
             <tbody>
               ${cartItems
-                .map(
-                  (item: CartItem) => `
+        .map(
+          (item: CartItem) => `
                 <tr>
                   <td>${item.productName}</td>
                   <td class="right">${item.saleQuantity} ${item.saleUnit}</td>
@@ -324,8 +325,8 @@ export default function POSPage() {
                   <td class="right">৳${item.subtotal.toFixed(2)}</td>
                 </tr>
               `,
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
           <div class="line"></div>
@@ -334,14 +335,13 @@ export default function POSPage() {
           ${sale.tax > 0 ? `<div class="row"><span>Tax:</span><span>৳${sale.tax.toFixed(2)}</span></div>` : ""}
           <div class="line"></div>
           <div class="row bold"><span>TOTAL:</span><span>৳${sale.total.toFixed(2)}</span></div>
-          ${
-            sale.paymentMethod === "cash"
-              ? `
+          ${sale.paymentMethod === "cash"
+        ? `
             <div class="row"><span>Received:</span><span>৳${sale.receivedAmount.toFixed(2)}</span></div>
             <div class="row"><span>Change:</span><span>৳${sale.changeAmount.toFixed(2)}</span></div>
           `
-              : ""
-          }
+        : ""
+      }
           <div class="row"><span>Payment:</span><span>${sale.paymentMethod.toUpperCase()}</span></div>
           <div class="line"></div>
           <div class="center">Thank you for your business!</div>
@@ -439,21 +439,23 @@ export default function POSPage() {
                     className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
                     onClick={() => addToCart(product)}
                   >
-                    <div className="space-y-2">
-                      {product.image && (
-                        <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={product.image || "/placeholder.svg"}
+                    <div className="space-y-2 content-center">
+                      <div className="relative h-40 w-40 mx-auto rounded-xl overflow-hidden bg-muted group">
+                        {product.image ? (
+                          <Image
+                            src={product.image}
                             alt={product.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="160px"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            priority={false}
                           />
-                        </div>
-                      )}
-                      {!product.image && (
-                        <div className="w-full aspect-square rounded-lg bg-muted flex items-center justify-center">
-                          <Package className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      )}
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Package className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
