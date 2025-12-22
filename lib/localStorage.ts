@@ -12,6 +12,7 @@ export interface Product {
   description: string
   supplier: string
   barcode: string
+  image?: string // Base64 encoded image or URL
   createdAt: string
   updatedAt: string
 }
@@ -56,6 +57,7 @@ export interface SaleItem {
   productName: string
   sku: string
   quantity: number
+  unit: string
   unitPrice: number
   subtotal: number
 }
@@ -77,12 +79,66 @@ export interface Sale {
   createdBy: string
 }
 
+export interface PurchaseItem {
+  productId: string
+  productName: string
+  sku: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  subtotal: number
+}
+
+export interface Purchase {
+  id: string
+  purchaseNumber: string
+  supplierId: string
+  supplierName: string
+  items: PurchaseItem[]
+  subtotal: number
+  discount: number
+  tax: number
+  total: number
+  paymentMethod: string
+  notes: string
+  createdAt: string
+  createdBy: string
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: "Admin" | "Manager" | "Salesman"
+  status: "Active" | "Inactive"
+  password: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Expense {
+  id: string
+  date: string
+  category: string
+  amount: number
+  description: string
+  paymentMethod: string
+  reference: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
 const STORAGE_KEY_PRODUCTS = "pos_products"
 const STORAGE_KEY_CATEGORIES = "pos_categories"
 const STORAGE_KEY_BRANDS = "pos_brands"
 const STORAGE_KEY_UNITS = "pos_units"
 const STORAGE_KEY_SUPPLIERS = "pos_suppliers"
 const STORAGE_KEY_SALES = "pos_sales"
+const STORAGE_KEY_PURCHASES = "pos_purchases"
+const STORAGE_KEY_USERS = "pos_users"
+const STORAGE_KEY_EXPENSES = "pos_expenses"
 
 function createStorage<T extends { id: string; createdAt: string; updatedAt: string }>(storageKey: string) {
   return {
@@ -143,6 +199,10 @@ export const supplierStorage = createStorage<Supplier>(STORAGE_KEY_SUPPLIERS)
 
 export const saleStorage = createStorage<Sale>(STORAGE_KEY_SALES)
 
+export const purchaseStorage = createStorage<Purchase>(STORAGE_KEY_PURCHASES)
+export const userStorage = createStorage<User>(STORAGE_KEY_USERS)
+export const expenseStorage = createStorage<Expense>(STORAGE_KEY_EXPENSES)
+
 export const productSpecificStorage = {
   // Get low stock products
   getLowStock: (): Product[] => {
@@ -187,5 +247,21 @@ export const saleSpecificStorage = {
     const sales = saleStorage.getAll()
     const today = new Date().toISOString().split("T")[0]
     return sales.filter((s) => s.createdAt.split("T")[0] === today)
+  },
+}
+
+export const purchaseSpecificStorage = {
+  generatePurchaseNumber: (): string => {
+    const purchases = purchaseStorage.getAll()
+    const date = new Date()
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`
+    const count = purchases.filter((p) => p.purchaseNumber.startsWith(`PUR-${dateStr}`)).length + 1
+    return `PUR-${dateStr}-${String(count).padStart(4, "0")}`
+  },
+
+  getTodayPurchases: (): Purchase[] => {
+    const purchases = purchaseStorage.getAll()
+    const today = new Date().toISOString().split("T")[0]
+    return purchases.filter((p) => p.createdAt.split("T")[0] === today)
   },
 }

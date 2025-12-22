@@ -13,6 +13,8 @@ import {
   ShoppingBag,
   ChevronDown,
   Layers,
+  User,
+  Wallet,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -25,6 +27,7 @@ const navigation = [
   { name: "Sales", href: "/sales", icon: ShoppingBag },
   { name: "Products", href: "/products", icon: Package },
   { name: "Purchases", href: "/purchases", icon: FileText },
+  { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Users", href: "/users", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
 ]
@@ -53,7 +56,7 @@ export function DashboardSidebar() {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <ShoppingCart className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold">Tohfa POS System</span>
+            <span className="text-lg font-bold">POS System</span>
           </Link>
         )}
         {collapsed && (
@@ -136,6 +139,21 @@ export function DashboardSidebar() {
             </div>
           )}
         </div>
+
+        <Link
+          href="/profile"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+            pathname === "/profile"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            collapsed && "justify-center",
+          )}
+          title={collapsed ? "Profile" : undefined}
+        >
+          <User className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span>Profile</span>}
+        </Link>
 
         {/* Settings at the bottom */}
         <Link

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,7 +18,7 @@ import {
   type Supplier,
 } from "@/lib/localStorage"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, Plus, Upload, X } from "lucide-react"
 import { PREDEFINED_UNITS, type Unit } from "@/lib/units"
 
 interface ProductFormProps {
@@ -33,6 +33,8 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
   const [brands, setBrands] = useState<Brand[]>([])
   const [units, setUnits] = useState<Unit[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     sku: "",
@@ -47,6 +49,7 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
     description: "",
     supplier: "",
     barcode: "",
+    image: "",
   })
 
   useEffect(() => {
@@ -71,9 +74,40 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
         description: editProduct.description,
         supplier: editProduct.supplier,
         barcode: editProduct.barcode,
+        image: editProduct.image || "",
       })
+      if (editProduct.image) {
+        setImagePreview(editProduct.image)
+      }
     }
   }, [editProduct])
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        setImagePreview(base64)
+        setFormData((prev) => ({
+          ...prev,
+          image: base64,
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+    setFormData((prev) => ({
+      ...prev,
+      image: "",
+    }))
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,6 +127,7 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
         description: formData.description,
         supplier: formData.supplier,
         barcode: formData.barcode,
+        image: formData.image,
       }
 
       if (editProduct) {
@@ -114,7 +149,9 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
         description: "",
         supplier: "",
         barcode: "",
+        image: "",
       })
+      setImagePreview(null)
 
       onSuccess?.()
     } catch (error) {
@@ -148,6 +185,44 @@ export function ProductForm({ editProduct, onSuccess, onCancel }: ProductFormPro
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label>Product Image</Label>
+            <div className="flex items-center gap-4">
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview || "/placeholder.svg"}
+                    alt="Product preview"
+                    className="w-32 h-32 object-cover rounded-lg border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={removeImage}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1 space-y-2">
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="cursor-pointer"
+                />
+                <p className="text-xs text-muted-foreground">Upload product image (PNG, JPG, WEBP)</p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="sku">SKU *</Label>

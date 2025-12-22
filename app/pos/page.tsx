@@ -1,7 +1,19 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Search, Filter, Maximize2, Minimize2, ShoppingCart, Trash2, Plus, Minus, X, Receipt } from "lucide-react"
+import {
+  Search,
+  Filter,
+  Maximize2,
+  Minimize2,
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  X,
+  Receipt,
+  Package,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -35,6 +47,18 @@ interface ExtendedSaleItem extends SaleItem {
   baseQuantity: number // The quantity in product's base unit (e.g., 0.2 l)
 }
 
+interface CartItem {
+  productId: string
+  productName: string
+  sku: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+  saleUnit: string
+  saleQuantity: number
+  baseQuantity: number
+}
+
 export default function POSPage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -43,7 +67,7 @@ export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([])
-  const [cart, setCart] = useState<ExtendedSaleItem[]>([])
+  const [cart, setCart] = useState<CartItem[]>([])
   const [showCheckout, setShowCheckout] = useState(false)
   const [showQuantityDialog, setShowQuantityDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -128,12 +152,12 @@ export default function POSPage() {
         cart.map((item) =>
           item.productId === selectedProduct.id && item.saleUnit === customUnit
             ? {
-              ...item,
-              saleQuantity: newSaleQty,
-              baseQuantity: newBaseQty,
-              quantity: newBaseQty,
-              subtotal: newBaseQty * item.unitPrice,
-            }
+                ...item,
+                saleQuantity: newSaleQty,
+                baseQuantity: newBaseQty,
+                quantity: newBaseQty, // Base unit quantity for backend
+                subtotal: newBaseQty * item.unitPrice,
+              }
             : item,
         ),
       )
@@ -183,7 +207,7 @@ export default function POSPage() {
           }
           return item
         })
-        .filter((item): item is ExtendedSaleItem => item !== null),
+        .filter((item): item is CartItem => item !== null),
     )
   }
 
@@ -250,7 +274,7 @@ export default function POSPage() {
     loadData()
   }
 
-  const printReceipt = (sale: any, cartItems: ExtendedSaleItem[]) => {
+  const printReceipt = (sale: any, cartItems: CartItem[]) => {
     const receiptWindow = window.open("", "_blank")
     if (!receiptWindow) return
 
@@ -272,7 +296,7 @@ export default function POSPage() {
           </style>
         </head>
         <body>
-          <h2>TOHFA POS SYSTEM</h2>
+          <h2>POS SYSTEM</h2>
           <div class="center">Sale Receipt</div>
           <div class="line"></div>
           <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber}</span></div>
@@ -291,8 +315,8 @@ export default function POSPage() {
             </thead>
             <tbody>
               ${cartItems
-        .map(
-          (item: ExtendedSaleItem) => `
+                .map(
+                  (item: CartItem) => `
                 <tr>
                   <td>${item.productName}</td>
                   <td class="right">${item.saleQuantity} ${item.saleUnit}</td>
@@ -300,8 +324,8 @@ export default function POSPage() {
                   <td class="right">৳${item.subtotal.toFixed(2)}</td>
                 </tr>
               `,
-        )
-        .join("")}
+                )
+                .join("")}
             </tbody>
           </table>
           <div class="line"></div>
@@ -310,13 +334,14 @@ export default function POSPage() {
           ${sale.tax > 0 ? `<div class="row"><span>Tax:</span><span>৳${sale.tax.toFixed(2)}</span></div>` : ""}
           <div class="line"></div>
           <div class="row bold"><span>TOTAL:</span><span>৳${sale.total.toFixed(2)}</span></div>
-          ${sale.paymentMethod === "cash"
-        ? `
+          ${
+            sale.paymentMethod === "cash"
+              ? `
             <div class="row"><span>Received:</span><span>৳${sale.receivedAmount.toFixed(2)}</span></div>
             <div class="row"><span>Change:</span><span>৳${sale.changeAmount.toFixed(2)}</span></div>
           `
-        : ""
-      }
+              : ""
+          }
           <div class="row"><span>Payment:</span><span>${sale.paymentMethod.toUpperCase()}</span></div>
           <div class="line"></div>
           <div class="center">Thank you for your business!</div>
@@ -335,7 +360,6 @@ export default function POSPage() {
   }
 
   return (
-
     <div ref={containerRef} className={cn("h-screen flex flex-col bg-background", isFullscreen && "p-4")}>
       {/* Header */}
       <div className="border-b border-border bg-card px-6 py-4">
@@ -416,6 +440,20 @@ export default function POSPage() {
                     onClick={() => addToCart(product)}
                   >
                     <div className="space-y-2">
+                      {product.image && (
+                        <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={product.image || "/placeholder.svg"}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      {!product.image && (
+                        <div className="w-full aspect-square rounded-lg bg-muted flex items-center justify-center">
+                          <Package className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>

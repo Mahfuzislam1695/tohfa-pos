@@ -80,3 +80,24 @@ export function convertQuantity(quantity: number, fromUnit: string, toUnit: stri
 
   return inBaseUnit
 }
+
+export function convertToBaseUnit(quantity: number, unit: string): number {
+  const unitDef = getUnitByShortName(unit)
+
+  if (!unitDef) return quantity
+
+  // If already base unit, return as is
+  if (!unitDef.baseUnit) return quantity
+
+  // Convert to base unit
+  if (unitDef.conversionFactor) {
+    return quantity / unitDef.conversionFactor
+  }
+
+  return quantity
+}
+
+export function getUnitShortName(unit: string): string {
+  const unitDef = getUnitByShortName(unit)
+  return unitDef ? unitDef.shortName : unit
+}
