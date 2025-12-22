@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function SettingsPage() {
   const { toast } = useToast()
   const [shopSettings, setShopSettings] = useState({
-    name: "My POS Shop",
+    name: "My Tohfa POS Shop",
     email: "shop@example.com",
     phone: "+880 1234567890",
     address: "123 Main Street, Dhaka, Bangladesh",

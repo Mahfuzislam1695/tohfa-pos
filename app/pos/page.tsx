@@ -296,7 +296,7 @@ export default function POSPage() {
           </style>
         </head>
         <body>
-          <h2>POS SYSTEM</h2>
+          <h2>TOHFA POS SYSTEM</h2>
           <div class="center">Sale Receipt</div>
           <div class="line"></div>
           <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber}</span></div>

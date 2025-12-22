@@ -56,7 +56,7 @@ export function DashboardSidebar() {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <ShoppingCart className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold">POS System</span>
+            <span className="text-lg font-bold">TOHFA POS System</span>
           </Link>
         )}
         {collapsed && (

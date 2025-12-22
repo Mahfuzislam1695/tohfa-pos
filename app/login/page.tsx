@@ -28,7 +28,7 @@ export default function LoginPage() {
             <div className="h-12 w-12 bg-primary rounded-lg flex items-center justify-center">
               <ShoppingCart className="h-7 w-7 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">POS System</h1>
+            <h1 className="text-3xl font-bold text-foreground">TOHFA POS System</h1>
           </div>
           <p className="text-muted-foreground text-center">{"Welcome back! Sign in to manage your shop"}</p>
         </div>
