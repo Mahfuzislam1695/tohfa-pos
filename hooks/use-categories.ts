@@ -21,6 +21,8 @@ interface MetaData {
     totalPages: number
 }
 
+
+
 interface UseCategoriesReturn {
     categories: Category[]
     meta: MetaData
