@@ -3,9 +3,9 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SetupList } from "../setup-list"
-import { SetupForm } from "../setup-form"
+import { BrandForm } from "./brand-form"
 
-export default function Brand() {
+export default function Brands() {
     const [editItem, setEditItem] = useState<any>(null)
     const [activeTab, setActiveTab] = useState("list")
     const [refresh, setRefresh] = useState(0)
@@ -43,7 +43,7 @@ export default function Brand() {
                 </TabsContent>
 
                 <TabsContent value="add" className="mt-6">
-                    <SetupForm type="brand" editItem={editItem} onSuccess={handleSuccess} onCancel={handleCancel} />
+                    <BrandForm editItem={editItem} onSuccess={handleSuccess} onCancel={handleCancel} />
                 </TabsContent>
             </Tabs>
         </div>

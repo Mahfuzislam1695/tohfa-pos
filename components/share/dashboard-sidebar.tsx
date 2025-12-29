@@ -35,7 +35,7 @@ const navigation = [
 const setupMenu = [
   { name: "Categories", href: "/setup/categories" },
   { name: "Brands", href: "/setup/brands" },
-  { name: "Suppliers", href: "/setup/suppliers" },
+  // { name: "Suppliers", href: "/setup/suppliers" },
 ]
 
 export function DashboardSidebar() {
