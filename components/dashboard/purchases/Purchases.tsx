@@ -334,7 +334,7 @@ export default function Purchases() {
 
                 <TabsContent value="add">
                     <div className="grid gap-6 lg:grid-cols-3">
-                        <Card className="lg:col-span-2">
+                        <Card className="lg:col-span-3">
                             <CardHeader>
                                 <CardTitle>Add Products</CardTitle>
                                 <CardDescription>Select products and quantities for purchase</CardDescription>
@@ -420,108 +420,6 @@ export default function Purchases() {
                                         </Table>
                                     )}
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Purchase Details</CardTitle>
-                                <CardDescription>Complete the purchase information</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label>Supplier *</Label>
-                                        <Select
-                                            value={formData.supplierId}
-                                            onValueChange={(value) => setFormData({ ...formData, supplierId: value })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select supplier" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {suppliers.map((supplier) => (
-                                                    <SelectItem key={supplier.id} value={supplier.id}>
-                                                        {supplier.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Payment Method</Label>
-                                        <Select
-                                            value={formData.paymentMethod}
-                                            onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Cash">Cash</SelectItem>
-                                                <SelectItem value="Card">Card</SelectItem>
-                                                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                                                <SelectItem value="Credit">Credit</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Discount (%)</Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            value={formData.discount}
-                                            onChange={(e) =>
-                                                setFormData({ ...formData, discount: Number.parseFloat(e.target.value) || 0 })
-                                            }
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Tax (%)</Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            value={formData.tax}
-                                            onChange={(e) => setFormData({ ...formData, tax: Number.parseFloat(e.target.value) || 0 })}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Notes</Label>
-                                        <Textarea
-                                            value={formData.notes}
-                                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                            placeholder="Additional notes..."
-                                            rows={3}
-                                        />
-                                    </div>
-
-                                    <div className="border-t pt-4 space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span>Subtotal:</span>
-                                            <span>৳{subtotal.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm text-green-600">
-                                            <span>Discount:</span>
-                                            <span>-৳{discountAmount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span>Tax:</span>
-                                            <span>৳{taxAmount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-lg font-bold border-t pt-2">
-                                            <span>Total:</span>
-                                            <span>৳{total.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-
-                                    <Button type="submit" className="w-full" disabled={cartItems.length === 0}>
-                                        Complete Purchase
-                                    </Button>
-                                </form>
                             </CardContent>
                         </Card>
                     </div>

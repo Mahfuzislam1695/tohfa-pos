@@ -101,3 +101,92 @@ export function getUnitShortName(unit: string): string {
   const unitDef = getUnitByShortName(unit)
   return unitDef ? unitDef.shortName : unit
 }
+
+
+export function formatDate(dateString: string, includeTime: boolean = false): string {
+  const date = new Date(dateString)
+
+  if (includeTime) {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-BD', {
+    style: 'currency',
+    currency: 'BDT',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount)
+}
+
+export function getDateRange(filter: string, customStart?: Date, customEnd?: Date) {
+  const today = new Date()
+  const startDate = new Date()
+  const endDate = new Date()
+
+  switch (filter) {
+    case 'today':
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      break
+    case 'yesterday':
+      startDate.setDate(today.getDate() - 1)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setDate(today.getDate() - 1)
+      endDate.setHours(23, 59, 59, 999)
+      break
+    case 'last7days':
+      startDate.setDate(today.getDate() - 7)
+      break
+    case 'last30days':
+      startDate.setDate(today.getDate() - 30)
+      break
+    case 'thisMonth':
+      startDate.setDate(1)
+      break
+    case 'lastMonth':
+      startDate.setMonth(today.getMonth() - 1, 1)
+      endDate.setMonth(today.getMonth(), 0)
+      break
+    case 'thisYear':
+      startDate.setMonth(0, 1)
+      break
+    case 'custom':
+      if (customStart) startDate.setTime(customStart.getTime())
+      if (customEnd) endDate.setTime(customEnd.getTime())
+      break
+    default:
+      startDate.setDate(today.getDate() - 30)
+  }
+
+  return { startDate, endDate }
+}
+
+
+// Validate phone number
+export function validatePhone(phone: string): boolean {
+  // Accepts formats like: +8801750256844 or (+880) 2 223362613-4
+  const phoneRegex = /^(\+\d{1,4}\s?)?(\(\+\d{1,4}\))?[\s-]?\d{1,4}[\s-]?\d{1,4}[\s-]?\d{1,9}$/
+  return phoneRegex.test(phone)
+}
+
+// Validate password strength
+export function validatePassword(password: string): boolean {
+  // At least 8 characters, contains letters and numbers
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/
+  return passwordRegex.test(password)
+}
