@@ -352,7 +352,7 @@ export default function Pos() {
         <head>
           <title>Receipt - ${sale.invoiceNumber || 'SALE'}</title>
           <style>
-            body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+            body { font-family: monospace; padding: 2px; max-width: 300px; margin: 0 auto; }
             h2 { text-align: center; margin: 10px 0; }
             .line { border-top: 1px dashed #000; margin: 10px 0; }
             .row { display: flex; justify-content: space-between; margin: 5px 0; }
@@ -364,7 +364,7 @@ export default function Pos() {
           </style>
         </head>
         <body>
-          <h2>TOHFA POS SYSTEM</h2>
+          <h2>AT-TOHFA</h2>
           <div class="center">Sale Receipt</div>
           <div class="line"></div>
           <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber || 'N/A'}</span></div>
@@ -412,7 +412,7 @@ export default function Pos() {
           <div class="row"><span>Payment:</span><span>${paymentMethod.toUpperCase()}</span></div>
           ${notes ? `<div class="line"></div><div class="row"><span>Notes:</span><span>${notes}</span></div>` : ""}
           <div class="line"></div>
-          <div class="center">Thank you for your business!</div>
+          <div class="center">Thank you for shopping with us!</div>
           <script>window.print(); setTimeout(() => window.close(), 1000);</script>
         </body>
       </html>
@@ -690,7 +690,7 @@ export default function Pos() {
                                 autoFocus
                             />
                         </div>
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="unit">Unit *</Label>
                             <Select value={customUnit} onValueChange={setCustomUnit}>
                                 <SelectTrigger>
@@ -705,7 +705,7 @@ export default function Pos() {
                                         ))}
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </div> */}
                         {selectedProduct && customQuantity && customUnit !== selectedProduct.unit && (
                             <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
                                 {customQuantity} {customUnit} ={" "}
@@ -761,7 +761,7 @@ export default function Pos() {
                                     onChange={(e) => setDiscount(Number.parseFloat(e.target.value) || 0)}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <Label htmlFor="tax">Tax (%)</Label>
                                 <Input
                                     id="tax"
@@ -771,11 +771,11 @@ export default function Pos() {
                                     value={tax}
                                     onChange={(e) => setTax(Number.parseFloat(e.target.value) || 0)}
                                 />
-                            </div>
+                            </div> */}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="paymentMethod">Payment Method *</Label>
-                            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                            <Select value={paymentMethod} defaultValue="CASH" onValueChange={setPaymentMethod}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>

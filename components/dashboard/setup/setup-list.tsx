@@ -35,6 +35,9 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
   const setItemsPerPage = hook?.setItemsPerPage || (() => { })
   const refetch = hook?.refetch || (() => { })
 
+  console.log("");
+
+
   // Delete mutation
   const { mutate: deleteItem, isPending: isDeleting } = useDelete(
     `/${type}s`,
@@ -135,7 +138,7 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeyDown}
                 className="pl-10"
-                // disabled={isLoading}
+              // disabled={isLoading}
               />
               {searchTerm && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -216,7 +219,7 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDelete(item[`${type}ID`] || item.id)}
@@ -227,7 +230,7 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
                               ) : (
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               )}
-                            </Button>
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>

@@ -57,7 +57,7 @@ export function CategoryForm({ editItem, onSuccess, onCancel }: CategoryFormProp
         "/categories",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Category created successfully!")
+                // toast.success("Category created successfully!")
                 reset()
                 // Invalidate category queries to refresh data
                 queryClient.invalidateQueries({ queryKey: ["categories"] })
@@ -75,7 +75,7 @@ export function CategoryForm({ editItem, onSuccess, onCancel }: CategoryFormProp
         `/categories/${editItem?.categoryID}`,
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Category updated successfully!")
+                // toast.success("Category updated successfully!")
                 reset()
                 // Invalidate category queries to refresh data
                 queryClient.invalidateQueries({ queryKey: ["categories"] })

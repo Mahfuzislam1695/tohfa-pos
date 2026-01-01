@@ -52,6 +52,8 @@ interface UseProductsReturn {
     isLoading: boolean
     searchTerm: string
     currentPage: number
+    itemsPerPage: number
+    setItemsPerPage: (count: number) => void
     setSearchTerm: (term: string) => void
     setCurrentPage: (page: number) => void
     refetch: () => void
@@ -60,7 +62,7 @@ interface UseProductsReturn {
 export const useProducts = (): UseProductsReturn => {
     const [currentPage, setCurrentPage] = useState(1)
     const [searchTerm, setSearchTerm] = useState("")
-    const itemsPerPage = 10
+    const [itemsPerPage, setItemsPerPage] = useState(10)
 
     // Build query parameters for pagination and search
     const queryParams = new URLSearchParams({
@@ -120,6 +122,8 @@ export const useProducts = (): UseProductsReturn => {
         isLoading,
         searchTerm,
         currentPage,
+        itemsPerPage,
+        setItemsPerPage,
         setSearchTerm,
         setCurrentPage,
         refetch
