@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, Eye, DollarSign, ShoppingBag, Package, TrendingUp, Loader2, ChevronLeft, ChevronRight, User, Calendar, Percent, Tag, X } from "lucide-react"
+import { Search, Eye, DollarSign, ShoppingBag, Package, TrendingUp, Loader2, ChevronLeft, ChevronRight, User, Calendar, Percent, Tag, X, Download, FileText } from "lucide-react"
 import { useGetAll } from "@/hooks/useGet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatDate } from "@/lib/units"
 import { SalesDetails } from "./sales-details"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { exportSalesToCSV, exportSalesToPDF } from "@/lib/exportUtils"
 
 interface SalesListProps {
     onView?: (item: any) => void
@@ -152,7 +153,7 @@ export default function Sales({ onView, refresh }: SalesListProps) {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
     const {
-        sales,
+        sales: salesData,
         statistics,
         meta,
         isLoading,
@@ -278,8 +279,60 @@ export default function Sales({ onView, refresh }: SalesListProps) {
         )
     }
 
+    // Handle export to CSV
+    const handleExportCSV = () => {
+        if (salesData.length === 0) {
+            return
+        }
+
+        // Format sales data for export
+        const exportData = salesData.map(sale => ({
+            ...sale,
+            date: sale.createdAt,
+            items: sale.sellItems,
+            customerName: sale.customerName || "Walk-in Customer"
+        }))
+
+        exportSalesToCSV(exportData, "sales-report", statistics || undefined)
+    }
+
+    // Handle export to PDF
+    const handleExportPDF = () => {
+        if (salesData.length === 0) {
+            return
+        }
+
+        // Format sales data for export
+        const exportData = salesData.map(sale => ({
+            ...sale,
+            date: sale.createdAt,
+            items: sale.sellItems,
+            customerName: sale.customerName || "Walk-in Customer"
+        }))
+
+        exportSalesToPDF(exportData, "sales-report", statistics || undefined)
+    }
+
     return (
         <div className="p-6 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground">Sales Management</h1>
+                    <p className="text-muted-foreground mt-1">Track and analyze your sales performance</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button onClick={handleExportCSV} variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export CSV
+                    </Button>
+                    <Button onClick={handleExportPDF} variant="outline" size="sm">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export PDF
+                    </Button>
+                </div>
+            </div>
+
             {/* Statistics Cards */}
             <div className="grid gap-4 md:grid-cols-4">
                 <Card>
@@ -417,7 +470,7 @@ export default function Sales({ onView, refresh }: SalesListProps) {
                 </CardHeader>
 
                 <CardContent>
-                    {isLoading && sales.length === 0 ? (
+                    {isLoading && salesData.length === 0 ? (
                         <div className="flex justify-center items-center h-64">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
@@ -441,14 +494,14 @@ export default function Sales({ onView, refresh }: SalesListProps) {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {sales.length === 0 ? (
+                                        {salesData.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={11} className="text-center text-muted-foreground h-32">
                                                     {searchTerm ? `No sales found matching "${searchTerm}"` : `No sales found`}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            sales.map((sale, index) => (
+                                            salesData.map((sale, index) => (
                                                 <TableRow key={sale.sellID}>
                                                     <TableCell className="font-medium text-center">
                                                         {getSerialNumber(index)}
