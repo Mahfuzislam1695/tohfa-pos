@@ -14,6 +14,11 @@ import { SalesDetails } from "./sales-details"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { exportSalesToCSV, exportSalesToPDF } from "@/lib/exportUtils"
 
+
+import { ArrowLeftRight, RefreshCw } from "lucide-react"
+import { ReturnsManagement } from "./return-exchange/returns-management"
+import { ReturnModal } from "./return-exchange/return-modal"
+
 interface SalesListProps {
     onView?: (item: any) => void
     refresh?: number
@@ -151,6 +156,10 @@ export default function Sales({ onView, refresh }: SalesListProps) {
     const [debouncedSearch, setDebouncedSearch] = useState("")
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
     const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+    const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
+    const [selectedSaleForReturn, setSelectedSaleForReturn] = useState<any>(null)
+    const [showReturnsTab, setShowReturnsTab] = useState(false)
+
 
     const {
         sales: salesData,
@@ -333,328 +342,380 @@ export default function Sales({ onView, refresh }: SalesListProps) {
                 </div>
             </div>
 
-            {/* Statistics Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{statistics?.totalSales || 0}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {periodOptions.find(p => p.value === period)?.label || 'Today'}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">৳{statistics?.totalRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Average: ৳{statistics?.averageSaleValue?.toFixed(2) || '0.00'}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Items Sold</CardTitle>
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{statistics?.totalItems || 0}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Total items sold
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Discount</CardTitle>
-                        <Tag className="h-4 w-4 text-emerald-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-emerald-600">৳{statistics?.totalDiscount?.toFixed(2) || '0.00'}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Total tax: ৳{statistics?.totalTax?.toFixed(2) || '0.00'}
-                        </p>
-                    </CardContent>
-                </Card>
+            <div className="flex border-b">
+                <Button
+                    variant="ghost"
+                    className={`rounded-none ${!showReturnsTab ? 'border-b-2 border-primary' : ''}`}
+                    onClick={() => setShowReturnsTab(false)}
+                >
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    Sales
+                </Button>
+                <Button
+                    variant="ghost"
+                    className={`rounded-none ${showReturnsTab ? 'border-b-2 border-primary' : ''}`}
+                    onClick={() => setShowReturnsTab(true)}
+                >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Returns
+                </Button>
             </div>
 
-            {/* Sales Table */}
-            <Card>
-                <CardHeader>
-                    <div className="flex flex-col space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <CardTitle>Sales History</CardTitle>
-                                <CardDescription>View and manage all sales transactions</CardDescription>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                {/* Period Selector */}
-                                <div className="w-full sm:w-48">
-                                    <Select
-                                        value={period}
-                                        onValueChange={handlePeriodChange}
-                                        disabled={isLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select period" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {periodOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+            {showReturnsTab ? (
+                <ReturnsManagement />
+            ) : (<>
+
+                {/* Statistics Cards */}
+                <div className="grid gap-4 md:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statistics?.totalSales || 0}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {periodOptions.find(p => p.value === period)?.label || 'Today'}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">৳{statistics?.totalRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Average: ৳{statistics?.averageSaleValue?.toFixed(2) || '0.00'}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Items Sold</CardTitle>
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statistics?.totalItems || 0}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Total items sold
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Discount</CardTitle>
+                            <Tag className="h-4 w-4 text-emerald-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-emerald-600">৳{statistics?.totalDiscount?.toFixed(2) || '0.00'}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Total tax: ৳{statistics?.totalTax?.toFixed(2) || '0.00'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Sales Table */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <CardTitle>Sales History</CardTitle>
+                                    <CardDescription>View and manage all sales transactions</CardDescription>
                                 </div>
-
-                                {/* Search Input */}
-                                <div className="relative w-full sm:w-72">
-                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search by invoice, customer..."
-                                        value={searchTerm}
-                                        onChange={handleSearchChange}
-                                        onKeyDown={handleSearchKeyDown}
-                                        className="pl-10"
-                                    />
-                                    {searchTerm && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                            <span className="text-xs text-muted-foreground">
-                                                {isLoading ? "Searching..." : "Press Enter or wait"}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Items per page selector */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                                <span className="text-sm text-muted-foreground">Show:</span>
-                                <Select
-                                    value={itemsPerPage.toString()}
-                                    onValueChange={handleItemsPerPageChange}
-                                    disabled={isLoading}
-                                >
-                                    <SelectTrigger className="w-20">
-                                        <SelectValue placeholder="10" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="5">5</SelectItem>
-                                        <SelectItem value="10">10</SelectItem>
-                                        <SelectItem value="20">20</SelectItem>
-                                        <SelectItem value="50">50</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <span className="text-sm text-muted-foreground">per page</span>
-                            </div>
-                            {searchTerm && (
-                                <div className="text-sm text-muted-foreground">
-                                    Search results for: "<span className="font-medium">{searchTerm}</span>"
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent>
-                    {isLoading && salesData.length === 0 ? (
-                        <div className="flex justify-center items-center h-64">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        </div>
-                    ) : (
-                        <>
-                            <div className="rounded-md border mb-4">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-16 text-center">SL</TableHead>
-                                            <TableHead>Invoice</TableHead>
-                                            <TableHead>Customer</TableHead>
-                                            <TableHead className="text-right">Items</TableHead>
-                                            <TableHead className="text-right">Subtotal</TableHead>
-                                            <TableHead className="text-right">Discount</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
-                                            <TableHead>Payment Method</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead className="text-center">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {salesData.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={11} className="text-center text-muted-foreground h-32">
-                                                    {searchTerm ? `No sales found matching "${searchTerm}"` : `No sales found`}
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            salesData.map((sale, index) => (
-                                                <TableRow key={sale.sellID}>
-                                                    <TableCell className="font-medium text-center">
-                                                        {getSerialNumber(index)}
-                                                    </TableCell>
-                                                    <TableCell className="font-mono text-sm">
-                                                        {sale.invoiceNumber}
-                                                    </TableCell>
-                                                    <TableCell className="font-medium">
-                                                        <div className="flex flex-col">
-                                                            <span>{sale.customerName}</span>
-                                                            {sale.customerPhone && (
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {sale.customerPhone}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="font-medium">{sale.sellItems.length}</span>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                Qty: {sale.sellItems.reduce((sum, item) => sum + item.quantity, 0)}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="font-medium">৳{sale.subtotal.toFixed(2)}</span>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                Tax: ৳{sale.tax.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className="font-medium text-emerald-600">৳{sale.discount.toFixed(2)}</span>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className="font-bold">৳{sale.total.toFixed(2)}</span>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {formatPaymentMethod(sale.paymentMethod)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {formatPaymentStatus(sale.paymentStatus)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm">{formatDate(sale.createdAt)}</span>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                By: {sale.createdBy.name}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex justify-center">
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={() => handleViewSale(sale)}
-                                                                disabled={isLoading}
-                                                                className="h-8 w-8 p-0"
-                                                                title="View Details"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
-
-                            {/* Pagination */}
-                            {meta && meta.totalPages > 0 && (
-                                <div className="flex items-center justify-between">
-                                    <div className="text-sm text-muted-foreground">
-                                        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                                        {Math.min(currentPage * itemsPerPage, meta.totalItems)} of{" "}
-                                        {meta.totalItems} entries
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    {/* Period Selector */}
+                                    <div className="w-full sm:w-48">
+                                        <Select
+                                            value={period}
+                                            onValueChange={handlePeriodChange}
+                                            disabled={isLoading}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select period" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {periodOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
-                                    {meta.totalPages > 1 && (
-                                        <div className="flex items-center space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                disabled={currentPage === 1 || isLoading}
-                                            >
-                                                <ChevronLeft className="h-4 w-4" />
-                                                <span className="sr-only">Previous</span>
-                                            </Button>
-
-                                            {/* Page numbers */}
-                                            <div className="flex items-center space-x-1">
-                                                {Array.from({ length: Math.min(5, meta.totalPages) }, (_, i) => {
-                                                    let pageNum
-                                                    if (meta.totalPages <= 5) {
-                                                        pageNum = i + 1
-                                                    } else if (currentPage <= 3) {
-                                                        pageNum = i + 1
-                                                    } else if (currentPage >= meta.totalPages - 2) {
-                                                        pageNum = meta.totalPages - 4 + i
-                                                    } else {
-                                                        pageNum = currentPage - 2 + i
-                                                    }
-
-                                                    return (
-                                                        <Button
-                                                            key={pageNum}
-                                                            variant={currentPage === pageNum ? "default" : "outline"}
-                                                            size="sm"
-                                                            onClick={() => handlePageChange(pageNum)}
-                                                            disabled={isLoading}
-                                                            className="w-8 h-8 p-0"
-                                                        >
-                                                            {pageNum}
-                                                        </Button>
-                                                    )
-                                                })}
+                                    {/* Search Input */}
+                                    <div className="relative w-full sm:w-72">
+                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search by invoice, customer..."
+                                            value={searchTerm}
+                                            onChange={handleSearchChange}
+                                            onKeyDown={handleSearchKeyDown}
+                                            className="pl-10"
+                                        />
+                                        {searchTerm && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <span className="text-xs text-muted-foreground">
+                                                    {isLoading ? "Searching..." : "Press Enter or wait"}
+                                                </span>
                                             </div>
-
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                disabled={currentPage === meta.totalPages || isLoading}
-                                            >
-                                                <ChevronRight className="h-4 w-4" />
-                                                <span className="sr-only">Next</span>
-                                            </Button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            )}
-                        </>
-                    )}
-                </CardContent>
-            </Card>
+                            </div>
 
-            {/* Sale Details Modal */}
-            <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Sale Details</DialogTitle>
-                    </DialogHeader>
-                    {selectedSale && (
-                        <SalesDetails sale={selectedSale} />
-                    )}
-                </DialogContent>
-            </Dialog>
+                            {/* Items per page selector */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-muted-foreground">Show:</span>
+                                    <Select
+                                        value={itemsPerPage.toString()}
+                                        onValueChange={handleItemsPerPageChange}
+                                        disabled={isLoading}
+                                    >
+                                        <SelectTrigger className="w-20">
+                                            <SelectValue placeholder="10" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <span className="text-sm text-muted-foreground">per page</span>
+                                </div>
+                                {searchTerm && (
+                                    <div className="text-sm text-muted-foreground">
+                                        Search results for: "<span className="font-medium">{searchTerm}</span>"
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </CardHeader>
+
+                    <CardContent>
+                        {isLoading && salesData.length === 0 ? (
+                            <div className="flex justify-center items-center h-64">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : (
+                            <>
+                                <div className="rounded-md border mb-4">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-16 text-center">SL</TableHead>
+                                                <TableHead>Invoice</TableHead>
+                                                <TableHead>Customer</TableHead>
+                                                <TableHead className="text-right">Items</TableHead>
+                                                <TableHead className="text-right">Subtotal</TableHead>
+                                                <TableHead className="text-right">Discount</TableHead>
+                                                <TableHead className="text-right">Total</TableHead>
+                                                <TableHead>Payment Method</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead className="text-center">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {salesData.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={11} className="text-center text-muted-foreground h-32">
+                                                        {searchTerm ? `No sales found matching "${searchTerm}"` : `No sales found`}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                salesData.map((sale, index) => (
+                                                    <TableRow key={sale.sellID}>
+                                                        <TableCell className="font-medium text-center">
+                                                            {getSerialNumber(index)}
+                                                        </TableCell>
+                                                        <TableCell className="font-mono text-sm">
+                                                            {sale.invoiceNumber}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">
+                                                            <div className="flex flex-col">
+                                                                <span>{sale.customerName}</span>
+                                                                {sale.customerPhone && (
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {sale.customerPhone}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="font-medium">{sale.sellItems.length}</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    Qty: {sale.sellItems.reduce((sum, item) => sum + item.quantity, 0)}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="font-medium">৳{sale.subtotal.toFixed(2)}</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    Tax: ৳{sale.tax.toFixed(2)}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className="font-medium text-emerald-600">৳{sale.discount.toFixed(2)}</span>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className="font-bold">৳{sale.total.toFixed(2)}</span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {formatPaymentMethod(sale.paymentMethod)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {formatPaymentStatus(sale.paymentStatus)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm">{formatDate(sale.createdAt)}</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    By: {sale.createdBy.name}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex justify-center">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleViewSale(sale)}
+                                                                    disabled={isLoading}
+                                                                    className="h-8 w-8 p-0"
+                                                                    title="View Details"
+                                                                >
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => {
+                                                                        setSelectedSaleForReturn(sale)
+                                                                        setIsReturnModalOpen(true)
+                                                                    }}
+                                                                    disabled={isLoading || sale.paymentStatus === "VOIDED"}
+                                                                    className="h-8 w-8 p-0"
+                                                                    title="Create Return"
+                                                                >
+                                                                    <RefreshCw className="h-4 w-4" />
+                                                                </Button>
+
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {/* Pagination */}
+                                {meta && meta.totalPages > 0 && (
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-sm text-muted-foreground">
+                                            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                                            {Math.min(currentPage * itemsPerPage, meta.totalItems)} of{" "}
+                                            {meta.totalItems} entries
+                                        </div>
+
+                                        {meta.totalPages > 1 && (
+                                            <div className="flex items-center space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handlePageChange(currentPage - 1)}
+                                                    disabled={currentPage === 1 || isLoading}
+                                                >
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                    <span className="sr-only">Previous</span>
+                                                </Button>
+
+                                                {/* Page numbers */}
+                                                <div className="flex items-center space-x-1">
+                                                    {Array.from({ length: Math.min(5, meta.totalPages) }, (_, i) => {
+                                                        let pageNum
+                                                        if (meta.totalPages <= 5) {
+                                                            pageNum = i + 1
+                                                        } else if (currentPage <= 3) {
+                                                            pageNum = i + 1
+                                                        } else if (currentPage >= meta.totalPages - 2) {
+                                                            pageNum = meta.totalPages - 4 + i
+                                                        } else {
+                                                            pageNum = currentPage - 2 + i
+                                                        }
+
+                                                        return (
+                                                            <Button
+                                                                key={pageNum}
+                                                                variant={currentPage === pageNum ? "default" : "outline"}
+                                                                size="sm"
+                                                                onClick={() => handlePageChange(pageNum)}
+                                                                disabled={isLoading}
+                                                                className="w-8 h-8 p-0"
+                                                            >
+                                                                {pageNum}
+                                                            </Button>
+                                                        )
+                                                    })}
+                                                </div>
+
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handlePageChange(currentPage + 1)}
+                                                    disabled={currentPage === meta.totalPages || isLoading}
+                                                >
+                                                    <ChevronRight className="h-4 w-4" />
+                                                    <span className="sr-only">Next</span>
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Sale Details Modal */}
+                <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+                    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Sale Details</DialogTitle>
+                        </DialogHeader>
+                        {selectedSale && (
+                            <SalesDetails sale={selectedSale} />
+                        )}
+                    </DialogContent>
+                </Dialog></>)}
+
+            {selectedSaleForReturn && (
+                <ReturnModal
+                    sale={selectedSaleForReturn}
+                    isOpen={isReturnModalOpen}
+                    onClose={() => {
+                        setIsReturnModalOpen(false)
+                        setSelectedSaleForReturn(null)
+                    }}
+                    onSuccess={() => {
+                        // Refresh sales data
+                        refetch()
+                    }}
+                />
+            )}
         </div>
     )
 }

@@ -92,8 +92,6 @@ export interface PurchaseItem {
 export interface Purchase {
   id: string
   purchaseNumber: string
-  supplierId: string
-  supplierName: string
   items: PurchaseItem[]
   subtotal: number
   discount: number

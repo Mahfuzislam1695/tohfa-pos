@@ -1,3 +1,5 @@
+import { exportToCSV } from "./exportUtils"
+
 export interface UnitDefinition {
   name: string
   shortName: string
@@ -190,3 +192,41 @@ export function validatePassword(password: string): boolean {
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/
   return passwordRegex.test(password)
 }
+
+// export const exportReturnsToCSV = (returns: any[], filename: string) => {
+//   const headers = [
+//     'Return Number',
+//     'Invoice Number',
+//     'Customer Name',
+//     'Customer Phone',
+//     'Return Type',
+//     'Return Reason',
+//     'Status',
+//     'Refund Amount',
+//     'Restocking Fee',
+//     'Total Amount',
+//     'Created Date',
+//     'Processed Date',
+//     'Description',
+//     'Items Count',
+//     'Exchange Product'
+//   ]
+
+//   const data = returns.map(ret => ({
+//     'Return Number': ret.returnNumber,
+//     'Invoice Number': ret.sell.invoiceNumber,
+//     'Customer Name': ret.customerName,
+//     'Customer Phone': ret.customerPhone,
+//     'Return Type': ret.returnType,
+//     'Return Reason': ret.returnReason,
+//     'Status': ret.status,
+//     'Refund Amount': ret.refundAmount,
+//     'Restocking Fee': ret.restockingFee,
+//     'Total Amount': ret.totalAmount,
+//     'Created Date': new Date(ret.createdAt).toLocaleDateString(),
+//     'Processed Date': ret.processedAt ? new Date(ret.processedAt).toLocaleDateString() : '',
+//     'Description': ret.description,
+//     'Items Count': ret.returnItems.length,
+//     'Exchange Product': ret.exchangeForProduct?.name || ''
+//   }))
+// }
