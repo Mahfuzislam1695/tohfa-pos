@@ -57,7 +57,7 @@ export function BrandForm({ editItem, onSuccess, onCancel }: BrandFormProps) {
         "/brands",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Brand created successfully!")
+                // toast.success("Brand created successfully!")
                 reset()
                 // Invalidate brand queries to refresh data
                 queryClient.invalidateQueries({ queryKey: ["brands"] })

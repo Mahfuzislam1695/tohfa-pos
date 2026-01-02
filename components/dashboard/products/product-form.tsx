@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, Plus, RefreshCw, Copy, Sparkles } from "lucide-react"
 import { usePost } from "@/hooks/usePost"
 import { usePatch } from "@/hooks/usePatch"
 import { useForm } from "react-hook-form"
@@ -19,6 +19,8 @@ import { useBrandsDropdown } from "@/hooks/use-brands-dropdown"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PREDEFINED_UNITS } from "@/lib/units"
 import { BarcodePrint } from "./barcode-print"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 
 interface ProductFormProps {
   editItem?: any
@@ -35,7 +37,9 @@ const UNITS = PREDEFINED_UNITS.map(unit => ({
 UNITS.sort((a, b) => a.label.localeCompare(b.label))
 
 const productSchema = z.object({
-  sku: z.string().min(1, "SKU is required").max(50, "SKU must be less than 50 characters"),
+  sku: z.string()
+    .min(1, "SKU is required")
+    .max(50, "SKU must be less than 50 characters"),
   name: z.string().min(1, "Product name is required").max(200, "Product name must be less than 200 characters"),
   description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
   purchasePrice: z.string().min(0, "Purchase price must be a positive number")
@@ -82,6 +86,10 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
     sellingPrice: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [skuFormat, setSkuFormat] = useState<'auto' | 'manual'>('auto')
+  const [skuSequence, setSkuSequence] = useState(1)
+  const [includeNameInSku, setIncludeNameInSku] = useState(true)
+  const [nameCodeLength, setNameCodeLength] = useState(3)
 
   const {
     register,
@@ -112,11 +120,177 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
   })
 
   const formValues = watch()
+  const selectedCategory = categories.find(c => c.categoryID.toString() === formValues.categoryID)
+  const selectedBrand = brands.find(b => b.brandID?.toString() === formValues.brandID)
+
+  // Function to generate code from any text
+  const generateCode = (text: string, length: number = 3): string => {
+    if (!text) return ''
+
+    // Remove special characters and convert to uppercase
+    const cleanText = text.replace(/[^a-zA-Z0-9\s]/g, '').toUpperCase()
+
+    // Strategy 1: Use first letters of each word
+    const words = cleanText.split(' ')
+    if (words.length > 1) {
+      const firstLetters = words.map(w => w[0]).join('')
+      return firstLetters.substring(0, Math.min(length, firstLetters.length))
+    }
+
+    // Strategy 2: For single word, use first X letters
+    if (cleanText.length <= length) {
+      return cleanText
+    }
+
+    // Strategy 3: Use first 2 letters + last letter for longer words
+    if (length === 3) {
+      return cleanText.substring(0, 2) + cleanText[cleanText.length - 1]
+    }
+
+    // Strategy 4: Use vowels and consonants for better readability
+    const vowels = 'AEIOU'
+    const consonants = cleanText.replace(/[AEIOU]/gi, '')
+
+    if (consonants.length >= 2 && vowels.length >= 1 && length >= 3) {
+      return (consonants.substring(0, 2) + vowels[0]).substring(0, length)
+    }
+
+    // Fallback: First X characters
+    return cleanText.substring(0, length)
+  }
+
+  // Function to generate category code
+  const generateCategoryCode = (categoryName: string): string => {
+    return generateCode(categoryName, 3) || 'GEN'
+  }
+
+  // Function to generate brand code
+  const generateBrandCode = (brandName: string): string => {
+    return generateCode(brandName, 3) || 'NBR'
+  }
+
+  // Function to generate name code
+  const generateNameCode = (productName: string): string => {
+    if (!productName) return 'PRO'
+
+    // For product names, we can use different strategies
+    const words = productName.split(' ')
+
+    // Strategy 1: If name has multiple words, use first letters
+    if (words.length > 1) {
+      const firstLetters = words.map(w => w[0]).join('')
+      return firstLetters.substring(0, Math.min(nameCodeLength, firstLetters.length))
+    }
+
+    // Strategy 2: For single word, try to create pronounceable code
+    const word = productName.toUpperCase()
+
+    if (nameCodeLength === 3) {
+      // Try to create codes like "IPH" for iPhone, "MAC" for MacBook
+      if (word.includes('PHONE') || word.includes('IPHONE')) return 'PHN'
+      if (word.includes('BOOK') || word.includes('NOTEBOOK')) return 'NBK'
+      if (word.includes('LAPTOP')) return 'LTP'
+      if (word.includes('TABLET')) return 'TAB'
+      if (word.includes('CAMERA')) return 'CAM'
+      if (word.includes('PRINTER')) return 'PRT'
+      if (word.includes('MONITOR')) return 'MON'
+      if (word.includes('KEYBOARD')) return 'KBD'
+      if (word.includes('MOUSE')) return 'MOU'
+      if (word.includes('HEADPHONE')) return 'HPN'
+      if (word.includes('SPEAKER')) return 'SPK'
+      if (word.includes('CHARGER')) return 'CHG'
+      if (word.includes('CABLE')) return 'CBL'
+      if (word.includes('ADAPTER')) return 'ADP'
+      if (word.includes('BATTERY')) return 'BAT'
+
+      // Use first 2 letters + last letter for single words
+      return word.substring(0, 2) + word[word.length - 1]
+    }
+
+    // For longer codes, use more characters
+    return generateCode(productName, nameCodeLength)
+  }
+
+  // Function to generate SKU with product name included
+  const generateSku = (): string => {
+    const categoryCode = selectedCategory ? generateCategoryCode(selectedCategory.name) : 'GEN'
+    const brandCode = selectedBrand ? generateBrandCode(selectedBrand.name) : 'NBR'
+    const nameCode = includeNameInSku && formValues.name ? generateNameCode(formValues.name) : ''
+
+    // Different formats based on preferences
+    if (includeNameInSku && nameCode) {
+      // Format 1: CAT-PRODCODE-001 (Category-ProductCode-Sequence)
+      return `${categoryCode}-${nameCode}-${skuSequence.toString().padStart(3, '0')}`
+
+      // Alternative format if you want to include brand too:
+      // return `${categoryCode}-${brandCode}-${nameCode}-${skuSequence.toString().padStart(3, '0')}`
+    } else {
+      // Format 2: CAT-BRD-001 (Category-Brand-Sequence)
+      return `${categoryCode}-${brandCode}-${skuSequence.toString().padStart(3, '0')}`
+    }
+  }
+
+  // Auto-generate SKU when relevant fields change
+  useEffect(() => {
+    if (skuFormat === 'auto' && !editItem) {
+      const newSku = generateSku()
+      setValue('sku', newSku)
+    }
+  }, [formValues.categoryID, formValues.brandID, formValues.name, skuSequence, skuFormat, includeNameInSku, nameCodeLength, editItem])
+
+  // Suggest SKU formats based on selected category, brand, and product name
+  const suggestedSkuFormats = useMemo(() => {
+    const suggestions = []
+
+    if (selectedCategory || formValues.name) {
+      const catCode = selectedCategory ? generateCategoryCode(selectedCategory.name) : 'CAT'
+      const brandCode = selectedBrand ? generateBrandCode(selectedBrand.name) : 'BRD'
+      const nameCode = formValues.name ? generateNameCode(formValues.name) : 'PRO'
+
+      // Format 1: CAT-PROD-001 (Category-Product-Sequence) - Most descriptive
+      suggestions.push(`${catCode}-${nameCode}-001`)
+
+      // Format 2: CAT-BRD-PROD-001 (Category-Brand-Product-Sequence) - Most detailed
+      suggestions.push(`${catCode}-${brandCode}-${nameCode}-001`)
+
+      // Format 3: PROD-COLOR-SIZE (Product-Color-Size) - Good for variants
+      if (formValues.name.includes('Red') || formValues.name.includes('Blue') || formValues.name.includes('Black')) {
+        const color = formValues.name.includes('Red') ? 'RED' :
+          formValues.name.includes('Blue') ? 'BLU' :
+            formValues.name.includes('Black') ? 'BLK' : 'COL'
+        suggestions.push(`${nameCode}-${color}-SM`)
+      }
+
+      // Format 4: CAT-PROD-BRD-001 (Category-Product-Brand-Sequence)
+      suggestions.push(`${catCode}-${nameCode}-${brandCode}-001`)
+
+      // Format 5: Year-Month-Product-Sequence
+      const today = new Date()
+      const yearMonth = `${today.getFullYear().toString().slice(2)}${(today.getMonth() + 1).toString().padStart(2, '0')}`
+      suggestions.push(`${yearMonth}-${nameCode}-001`)
+
+      // Format 6: Simple memorable format
+      const memorableCode = formValues.name
+        .replace(/[^a-zA-Z]/g, '')
+        .substring(0, 6)
+        .toUpperCase()
+      if (memorableCode.length >= 4) {
+        suggestions.push(`${catCode}-${memorableCode}`)
+      }
+    }
+
+    return suggestions.slice(0, 5) // Limit to 5 suggestions
+  }, [selectedCategory, selectedBrand, formValues.name])
+
+  // Copy SKU to clipboard
+  const copySkuToClipboard = () => {
+    navigator.clipboard.writeText(formValues.sku)
+    toast.success("SKU copied to clipboard!")
+  }
 
   // Handle print dialog close
   const handlePrintDialogClose = () => {
     setShowPrintDialog(false)
-    // Call onSuccess after printing dialog is closed
     onSuccess?.()
   }
 
@@ -125,7 +299,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
     console.log("Print completed")
   }
 
-  // Update the ProductForm success handler
   const { mutate: createProduct, isPending: isCreating } = usePost(
     "/products",
     (data: any) => {
@@ -134,8 +307,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
       console.log("Create product response:", data)
 
       if (data?.statusCode >= 200 && data?.statusCode < 300) {
-        // toast.success("Product created successfully!")
-
         // Get barcode from backend response
         const barcode = data.data?.barcode
         const productName = data.data?.name
@@ -157,12 +328,10 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
           })
           setShowPrintDialog(true)
         } else {
-          // If no barcode, just call success
           onSuccess?.()
         }
       } else {
         toast.error(data?.message || "Failed to save product")
-        // onSuccess?.() // Still call onSuccess to close modal
       }
     },
     (error: any) => {
@@ -178,7 +347,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
       setIsSubmitting(false)
 
       if (data?.statusCode >= 200 && data?.statusCode < 300) {
-        toast.success("Product updated successfully!")
+        // toast.success("Product updated successfully!")
         reset()
         queryClient.invalidateQueries({ queryKey: ["products"] })
         onSuccess?.()
@@ -227,6 +396,9 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
       if (editItem.unit !== undefined) {
         setValue('unit', editItem.unit)
       }
+
+      // Set SKU format to manual for edit mode
+      setSkuFormat('manual')
     } else {
       reset({
         sku: "",
@@ -244,13 +416,14 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
         location: "",
         notes: "",
       })
+      setSkuFormat('auto')
+      setIncludeNameInSku(true)
     }
   }, [editItem, setValue, reset])
 
   const onSubmit = async (data: ProductFormData) => {
     console.log("Form submitted with data:", data)
 
-    // Validate all fields before submission
     const isValid = await trigger()
     if (!isValid) {
       toast.error("Please fix all errors before submitting")
@@ -259,9 +432,8 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
     setIsSubmitting(true)
 
-    // DO NOT include barcode in request - backend will generate it
     const dataToSubmit = {
-      sku: data.sku,
+      sku: data.sku.toUpperCase(),
       name: data.name,
       description: data.description || undefined,
       purchasePrice: data.purchasePrice,
@@ -277,10 +449,9 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
       notes: data.notes || undefined,
     }
 
-    console.log("Submitting product data (no barcode):", dataToSubmit)
+    console.log("Submitting product data:", dataToSubmit)
 
     if (editItem?.productID) {
-      // For updates, send barcode if it exists
       if (editItem.barcode) {
         dataToSubmit.barcode = editItem.barcode
       }
@@ -304,60 +475,213 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              {/* SKU */}
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU *</Label>
-                <Input
-                  id="sku"
-                  {...register("sku")}
-                  placeholder="PROD-001"
-                  disabled={isLoading}
-                  className={errors.sku ? "border-red-500" : ""}
-                />
-                {errors.sku && (
-                  <p className="text-sm text-red-500 mt-1">{errors.sku.message}</p>
-                )}
-              </div>
+              {/* SKU Section - Full width */}
+              {!editItem && (
+                <div className="space-y-2 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sku" className="text-base">
+                      Product SKU (Stock Keeping Unit) *
+                      <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-primary">
+                        <Sparkles className="h-3 w-3" />
+                        High Uniqueness & Presentability
+                      </span>
+                    </Label>
+                    {!editItem && (
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={skuFormat === 'auto' ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => setSkuFormat('auto')}
+                        >
+                          Auto-generate
+                        </Badge>
+                        <Badge
+                          variant={skuFormat === 'manual' ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => setSkuFormat('manual')}
+                        >
+                          Manual
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Product Name */}
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Input
+                        id="sku"
+                        {...register("sku")}
+                        placeholder={skuFormat === 'auto' ? generateSku() : "Enter custom SKU"}
+                        disabled={isLoading || skuFormat === 'auto'}
+                        className={`font-mono text-lg ${errors.sku ? "border-red-500" : ""}`}
+                        value={formValues.sku}
+                        onChange={(e) => setValue('sku', e.target.value.toUpperCase())}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={copySkuToClipboard}
+                      disabled={!formValues.sku}
+                      title="Copy SKU"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    {skuFormat === 'auto' && !editItem && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setSkuSequence(prev => prev + 1)}
+                        title="Generate next SKU"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {errors.sku && (
+                    <p className="text-sm text-red-500 mt-1">{errors.sku.message}</p>
+                  )}
+
+                  {/* SKU Generation Settings */}
+                  {!editItem && skuFormat === 'auto' && (
+                    <div className="mt-4 p-3 bg-muted rounded-md space-y-3 hidden">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">Include Product Name in SKU</p>
+                          <p className="text-xs text-muted-foreground">
+                            Makes SKU more descriptive and unique
+                          </p>
+                        </div>
+                        <Switch
+                          checked={includeNameInSku}
+                          onCheckedChange={setIncludeNameInSku}
+                        />
+                      </div>
+
+                      {includeNameInSku && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold">Name Code Length</p>
+                          <div className="flex gap-2">
+                            {[2, 3, 4, 5].map((length) => (
+                              <Badge
+                                key={length}
+                                variant={nameCodeLength === length ? "default" : "outline"}
+                                className="cursor-pointer"
+                                onClick={() => setNameCodeLength(length)}
+                              >
+                                {length} chars
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Current name code: {generateNameCode(formValues.name) || 'Enter name above'}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Current SKU Breakdown */}
+                      <div className="pt-2 border-t">
+                        <p className="text-sm font-semibold mb-2">Current SKU Breakdown:</p>
+                        <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                          <div className="bg-background p-2 rounded">
+                            <div className="font-bold">Category</div>
+                            <div className="font-mono">{generateCategoryCode(selectedCategory?.name || 'General')}</div>
+                          </div>
+                          {includeNameInSku && (
+                            <div className="bg-background p-2 rounded">
+                              <div className="font-bold">Product</div>
+                              <div className="font-mono">{generateNameCode(formValues.name) || '---'}</div>
+                            </div>
+                          )}
+                          {!includeNameInSku && selectedBrand && (
+                            <div className="bg-background p-2 rounded">
+                              <div className="font-bold">Brand</div>
+                              <div className="font-mono">{generateBrandCode(selectedBrand.name)}</div>
+                            </div>
+                          )}
+                          <div className="bg-background p-2 rounded">
+                            <div className="font-bold">Sequence</div>
+                            <div className="font-mono">{skuSequence.toString().padStart(3, '0')}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Suggested Formats */}
+                  {!editItem && formValues.name && (
+                    <div className="mt-3">
+                      <p className="text-sm font-semibold mb-2">Suggested SKU Formats for "{formValues.name.substring(0, 20)}..."</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestedSkuFormats.map((suggestion, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="font-mono text-sm cursor-pointer hover:bg-secondary/80 hover:scale-105 transition-transform"
+                            onClick={() => {
+                              setValue('sku', suggestion)
+                              if (skuFormat === 'auto') setSkuFormat('manual')
+                            }}
+                          >
+                            {suggestion}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>)}
+
+              {/* Product Name - Right after SKU */}
               <div className="space-y-2">
                 <Label htmlFor="name">Product Name *</Label>
                 <Input
                   id="name"
                   {...register("name")}
-                  placeholder="Premium Notebook"
+                  placeholder="iPhone 15 Pro Max 256GB"
                   disabled={isLoading}
                   className={errors.name ? "border-red-500" : ""}
+                  onBlur={() => {
+                    // Auto-generate name-based SKU when name changes
+                    if (skuFormat === 'auto' && includeNameInSku && formValues.name) {
+                      setValue('sku', generateSku())
+                    }
+                  }}
                 />
                 {errors.name && (
                   <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
                 )}
+                {formValues.name && includeNameInSku && (
+                  <p className="text-xs text-muted-foreground">
+                    Name code: <code className="bg-muted px-1 rounded font-mono">{generateNameCode(formValues.name)}</code>
+                  </p>
+                )}
               </div>
 
-              {/* Barcode will be generated by backend - show only in edit mode */}
-              {editItem && (
+              {/* Barcode */}
+              {/* {editItem && (
                 <div className="space-y-2">
                   <Label htmlFor="barcode">Barcode</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="barcode"
                       defaultValue={editItem.barcode || ""}
-                      placeholder="Generated by system"
+                      placeholder="Generated from SKU"
                       disabled={true}
                       className="font-mono"
                     />
-                    <span className="text-xs text-muted-foreground">
-                      (Auto-generated)
-                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Barcode is automatically generated by the system
+                    Barcode is automatically generated from SKU
                   </p>
                 </div>
-              )}
+              )} */}
 
               {/* Category */}
-              <div className="space-y-2">
+              {!editItem && (<div className="space-y-2">
                 <Label htmlFor="categoryID">Category *</Label>
                 <Select
                   value={formValues.categoryID?.toString() || ""}
@@ -388,69 +712,76 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 {errors.categoryID && (
                   <p className="text-sm text-red-500 mt-1">{errors.categoryID.message}</p>
                 )}
-              </div>
-
-              {/* Brand (Optional) */}
-              <div className="space-y-2">
-                <Label htmlFor="brandID">Brand</Label>
-                <Select
-                  value={formValues.brandID?.toString() || ""}
-                  onValueChange={(value) => setValue("brandID", value)}
-                  disabled={isLoading || brandsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select brand (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brandsLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Loading brands...
-                      </SelectItem>
-                    ) : brands.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No brands available
-                      </SelectItem>
-                    ) : (
-                      brands.map((brand) => (
-                        <SelectItem key={brand.brandID} value={brand.brandID.toString()}>
-                          {brand.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Unit */}
-              <div className="space-y-2">
-                <Label htmlFor="unit">Unit *</Label>
-                <Select
-                  value={formValues.unit}
-                  onValueChange={(value) => setValue("unit", value)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className={errors.unit ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNITS.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.unit && (
-                  <p className="text-sm text-red-500 mt-1">{errors.unit.message}</p>
+                {selectedCategory && (
+                  <p className="text-xs text-muted-foreground">
+                    Category code: <code className="bg-muted px-1 rounded font-mono">{generateCategoryCode(selectedCategory.name)}</code>
+                  </p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Format: Name (Short Code)
-                </p>
-              </div>
+              </div>)}
 
 
+              {/* Brand */}
+              {!editItem && (
+                <div className="space-y-2">
+                  <Label htmlFor="brandID">Brand</Label>
+                  <Select
+                    value={formValues.brandID?.toString() || ""}
+                    onValueChange={(value) => setValue("brandID", value)}
+                    disabled={isLoading || brandsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brandsLoading ? (
+                        <SelectItem value="loading" disabled>
+                          Loading brands...
+                        </SelectItem>
+                      ) : brands.length === 0 ? (
+                        <SelectItem value="empty" disabled>
+                          No brands available
+                        </SelectItem>
+                      ) : (
+                        brands.map((brand) => (
+                          <SelectItem key={brand.brandID} value={brand.brandID.toString()}>
+                            {brand.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {selectedBrand && (
+                    <p className="text-xs text-muted-foreground">
+                      Brand code: <code className="bg-muted px-1 rounded font-mono">{generateBrandCode(selectedBrand.name)}</code>
+                    </p>
+                  )}
+                </div>)}
 
-{/* Location */}
+              {/* Rest of the form fields remain the same */}
+              {!editItem && (
+                <div className="space-y-2">
+                  <Label htmlFor="unit">Unit *</Label>
+                  <Select
+                    value={formValues.unit}
+                    onValueChange={(value) => setValue("unit", value)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className={errors.unit ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNITS.map((unit) => (
+                        <SelectItem key={unit.value} value={unit.value}>
+                          {unit.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.unit && (
+                    <p className="text-sm text-red-500 mt-1">{errors.unit.message}</p>
+                  )}
+                </div>)}
+
               <div className="space-y-2">
                 <Label htmlFor="location">Storage Location</Label>
                 <Input
@@ -461,7 +792,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 />
               </div>
 
-              {/* Purchase Price */}
               <div className="space-y-2">
                 <Label htmlFor="purchasePrice">Purchase Price *</Label>
                 <Input
@@ -478,7 +808,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 )}
               </div>
 
-              {/* Selling Price */}
               <div className="space-y-2">
                 <Label htmlFor="sellingPrice">Selling Price *</Label>
                 <Input
@@ -495,7 +824,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 )}
               </div>
 
-              {/* Stock Quantity */}
               <div className="space-y-2">
                 <Label htmlFor="stockQuantity">Stock Quantity *</Label>
                 <Input
@@ -511,7 +839,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 )}
               </div>
 
-              {/* Low Stock Threshold */}
               <div className="space-y-2">
                 <Label htmlFor="lowStockThreshold">Low Stock Threshold *</Label>
                 <Input
@@ -526,36 +853,8 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                   <p className="text-sm text-red-500 mt-1">{errors.lowStockThreshold.message}</p>
                 )}
               </div>
-
-              {/* Tax Rate */}
-              {/* <div className="space-y-2">
-                <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                <Input
-                  id="taxRate"
-                  type="number"
-                  step="0.01"
-                  {...register("taxRate")}
-                  placeholder="7.5"
-                  disabled={isLoading}
-                />
-              </div> */}
-
-              {/* Reorder Point */}
-              {/* <div className="space-y-2">
-                <Label htmlFor="reorderPoint">Reorder Point</Label>
-                <Input
-                  id="reorderPoint"
-                  type="number"
-                  {...register("reorderPoint")}
-                  placeholder="10"
-                  disabled={isLoading}
-                />
-              </div> */}
-
-              
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -569,29 +868,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
               {errors.description && (
                 <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>
               )}
-              <p className="text-xs text-muted-foreground">
-                {formValues.description?.length || 0}/1000 characters
-              </p>
             </div>
-
-            {/* Notes */}
-            {/* <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea
-                id="notes"
-                {...register("notes")}
-                placeholder="Enter any additional notes..."
-                rows={2}
-                disabled={isLoading}
-                className={errors.notes ? "border-red-500" : ""}
-              />
-              {errors.notes && (
-                <p className="text-sm text-red-500 mt-1">{errors.notes.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                {formValues.notes?.length || 0}/1000 characters
-              </p>
-            </div> */}
 
             <div className="flex gap-3 pt-4">
               {editItem && onCancel && (
@@ -633,7 +910,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
         </CardContent>
       </Card>
 
-      {/* Reusable Barcode Print Component */}
       <BarcodePrint
         open={showPrintDialog}
         onOpenChange={handlePrintDialogClose}
@@ -646,10 +922,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
     </>
   )
 }
-
-
-
-
 // "use client"
 
 // import { useEffect, useState } from "react"
@@ -658,7 +930,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 // import { Label } from "@/components/ui/label"
 // import { Textarea } from "@/components/ui/textarea"
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Loader2, Plus, Printer, X } from "lucide-react"
+// import { Loader2, Plus } from "lucide-react"
 // import { usePost } from "@/hooks/usePost"
 // import { usePatch } from "@/hooks/usePatch"
 // import { useForm } from "react-hook-form"
@@ -670,15 +942,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 // import { useBrandsDropdown } from "@/hooks/use-brands-dropdown"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 // import { PREDEFINED_UNITS } from "@/lib/units"
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog"
-// import { Badge } from "@/components/ui/badge"
+// import { BarcodePrint } from "./barcode-print"
 
 // interface ProductFormProps {
 //   editItem?: any
@@ -698,7 +962,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //   sku: z.string().min(1, "SKU is required").max(50, "SKU must be less than 50 characters"),
 //   name: z.string().min(1, "Product name is required").max(200, "Product name must be less than 200 characters"),
 //   description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
-//   barcode: z.string().optional(),
 //   purchasePrice: z.string().min(0, "Purchase price must be a positive number")
 //     .transform((val) => parseFloat(val))
 //     .refine((val) => val >= 0, "Purchase price must be a positive number"),
@@ -728,21 +991,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
 // type ProductFormData = z.infer<typeof productSchema>
 
-// // Generate unique barcode based on SKU, name, and timestamp
-// function generateUniqueBarcode(sku: string, name: string): string {
-//   const timestamp = Date.now().toString().slice(-6) // Last 6 digits of timestamp
-//   const skuPart = sku.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase()
-//   const namePart = name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()
-
-//   // Create a unique code (max 20 chars)
-//   const barcode = `${skuPart}${namePart}${timestamp}`
-
-//   // Ensure it's exactly 12 digits (standard barcode length)
-//   const paddedBarcode = barcode.padEnd(12, '0').slice(0, 12)
-
-//   return paddedBarcode
-// }
-
 // export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps) {
 //   const queryClient = useQueryClient()
 //   const { categories, isLoading: categoriesLoading } = useCategoriesDropdown()
@@ -750,15 +998,14 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
 //   // State for barcode printing
 //   const [showPrintDialog, setShowPrintDialog] = useState(false)
-//   const [printQuantity, setPrintQuantity] = useState(1)
-//   const [generatedBarcode, setGeneratedBarcode] = useState("")
-//   const [productNameForPrint, setProductNameForPrint] = useState("")
-//   const [productSkuForPrint, setProductSkuForPrint] = useState("")
+//   const [printData, setPrintData] = useState({
+//     productName: "",
+//     productSku: "",
+//     barcode: "",
+//     productPrice: "",
+//     sellingPrice: ""
+//   })
 //   const [isSubmitting, setIsSubmitting] = useState(false)
-
-
-//   console.log("showPrintDialog", showPrintDialog);
-
 
 //   const {
 //     register,
@@ -774,7 +1021,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //       sku: "",
 //       name: "",
 //       description: "",
-//       barcode: "",
 //       purchasePrice: "0",
 //       sellingPrice: "0",
 //       taxRate: "",
@@ -791,16 +1037,17 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
 //   const formValues = watch()
 
-//   console.log("formValues", formValues);
+//   // Handle print dialog close
+//   const handlePrintDialogClose = () => {
+//     setShowPrintDialog(false)
+//     // Call onSuccess after printing dialog is closed
+//     onSuccess?.()
+//   }
 
-//   // Auto-generate barcode when SKU or name changes
-//   useEffect(() => {
-//     if (!editItem && formValues.sku && formValues.name) {
-//       const barcode = generateUniqueBarcode(formValues.sku, formValues.name)
-//       setValue("barcode", barcode)
-//       setGeneratedBarcode(barcode)
-//     }
-//   }, [formValues.sku, formValues.name, editItem, setValue])
+//   // Handle print completion
+//   const handlePrintComplete = () => {
+//     console.log("Print completed")
+//   }
 
 //   // Update the ProductForm success handler
 //   const { mutate: createProduct, isPending: isCreating } = usePost(
@@ -811,34 +1058,35 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //       console.log("Create product response:", data)
 
 //       if (data?.statusCode >= 200 && data?.statusCode < 300) {
-//         toast.success("Product created successfully!")
+//         // toast.success("Product created successfully!")
 
-//         // Store values for printing dialog BEFORE resetting form
-//         const currentSku = formValues.sku
-//         const currentName = formValues.name
-//         const currentBarcode = formValues.barcode || generateUniqueBarcode(currentSku, currentName)
+//         // Get barcode from backend response
+//         const barcode = data.data?.barcode
+//         const productName = data.data?.name
+//         const productSku = data.data?.sku
 
-//         console.log("Setting print values:", {
-//           sku: currentSku,
-//           name: currentName,
-//           barcode: currentBarcode
-//         })
+//         console.log("Backend generated barcode:", barcode)
 
-//         setProductNameForPrint(currentName)
-//         setProductSkuForPrint(currentSku)
-//         setGeneratedBarcode(currentBarcode)
-
-//         // Reset form but DON'T call onSuccess yet
+//         // Reset form
 //         reset()
 //         queryClient.invalidateQueries({ queryKey: ["products"] })
 
-//         // Show print dialog immediately
-//         setShowPrintDialog(true)
-
-//         // DO NOT call onSuccess here - wait for print dialog to close
-//         // onSuccess?.()
+//         // Show print dialog if barcode was generated
+//         if (barcode) {
+//           setPrintData({
+//             productName: productName || formValues.name,
+//             productSku: productSku || formValues.sku,
+//             barcode,
+//             sellingPrice: (formValues.sellingPrice?.toString() || "0")
+//           })
+//           setShowPrintDialog(true)
+//         } else {
+//           // If no barcode, just call success
+//           onSuccess?.()
+//         }
 //       } else {
 //         toast.error(data?.message || "Failed to save product")
+//         // onSuccess?.() // Still call onSuccess to close modal
 //       }
 //     },
 //     (error: any) => {
@@ -847,6 +1095,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //       toast.error(error?.message || "Failed to save product")
 //     }
 //   )
+
 //   const { mutate: updateProduct, isPending: isUpdating } = usePatch(
 //     `/products/${editItem?.productID}`,
 //     (data: any) => {
@@ -872,7 +1121,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //       console.log("Setting edit item data:", editItem)
 
 //       const fields = [
-//         'sku', 'name', 'description', 'barcode', 'location', 'notes'
+//         'sku', 'name', 'description', 'location', 'notes'
 //       ] as const
 
 //       fields.forEach(field => {
@@ -907,7 +1156,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //         sku: "",
 //         name: "",
 //         description: "",
-//         barcode: "",
 //         purchasePrice: "0",
 //         sellingPrice: "0",
 //         taxRate: "",
@@ -935,16 +1183,11 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
 //     setIsSubmitting(true)
 
-//     // Generate barcode if not provided
-//     if (!data.barcode) {
-//       data.barcode = generateUniqueBarcode(data.sku, data.name)
-//     }
-
+//     // DO NOT include barcode in request - backend will generate it
 //     const dataToSubmit = {
 //       sku: data.sku,
 //       name: data.name,
 //       description: data.description || undefined,
-//       barcode: data.barcode,
 //       purchasePrice: data.purchasePrice,
 //       sellingPrice: data.sellingPrice,
 //       taxRate: data.taxRate || undefined,
@@ -958,232 +1201,16 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //       notes: data.notes || undefined,
 //     }
 
-//     console.log("Submitting product data:", dataToSubmit)
+//     console.log("Submitting product data (no barcode):", dataToSubmit)
 
 //     if (editItem?.productID) {
+//       // For updates, send barcode if it exists
+//       if (editItem.barcode) {
+//         dataToSubmit.barcode = editItem.barcode
+//       }
 //       updateProduct(dataToSubmit)
 //     } else {
 //       createProduct(dataToSubmit)
-//     }
-//   }
-
-
-
-
-//   // Function to handle barcode printing
-//   const handlePrintBarcodes = () => {
-//     console.log("Printing barcodes:", {
-//       quantity: printQuantity,
-//       barcode: generatedBarcode,
-//       sku: productSkuForPrint
-//     });
-
-//     // Get current date for printing
-//     const printDate = new Date().toLocaleDateString();
-
-//     const printContent = `
-//   <!DOCTYPE html>
-//   <html>
-//   <head>
-//     <title>Print Barcodes - ${productSkuForPrint}</title>
-//     <style>
-//       @page {
-//         size: auto;
-//         margin: 0;
-//       }
-      
-//       * {
-//         margin: 0;
-//         padding: 0;
-//         box-sizing: border-box;
-//       }
-
-//       body {
-//         width: 100%;
-//         margin: 0 auto;
-//         padding: 0;
-//         font-family: sans-serif;
-//         display: flex;
-//         flex-direction: column;
-//         align-items: center;
-//         justify-content: flex-start;
-//         min-height: min-content;
-//         box-sizing: border-box;
-//         overflow: hidden;
-//       }
-
-//       .barcode-container {
-//         width: 100%;
-//         display: flex;
-//         flex-direction: column;
-//         align-items: center;
-//       }
-
-//       .barcode-item {
-//         width: 100%;
-//         display: flex;
-//         flex-direction: column;
-//         align-items: center;
-//         justify-content: flex-start;
-//         page-break-inside: avoid;
-//         break-inside: avoid;
-//         padding: 0;
-//       }
-
-//       .product-name {
-//         font-size: 10px;
-//         font-weight: bold;
-//         margin-top: 1px;
-//         margin-bottom: 1px;
-//         text-align: center;
-//         white-space: nowrap;
-//         overflow: hidden;
-//         text-overflow: ellipsis;
-//         width: 95%;
-//         line-height: 1.1;
-//       }
-
-//       .barcode-svg {
-//         width: 95%;
-//         height: 32px;
-//         display: block;
-//       }
-
-//       .sku-text {
-//         font-size: 10px;  
-//         margin-top: 1px;
-//         letter-spacing: 0.5px;
-//         line-height: 1;
-//         font-weight: 700;
-//         text-align: center;
-//       }
-
-//       .date-text {
-//         font-size: 6px;
-//         margin-top: 1px;
-//         margin-bottom: 2px;
-//         color: #000;
-//         line-height: 1;
-//         text-align: center;
-//       }
-
-//       .barcode-number {
-//         font-size: 10px;
-//         margin-top: 1px;
-//         letter-spacing: 0.5px;
-//         font-weight: 700;
-//         text-align: center;
-//         font-family: 'Courier New', monospace;
-//       }
-
-//       /* For thermal printers - no background colors */
-//       @media print {
-//         body {
-//           -webkit-print-color-adjust: exact;
-//           print-color-adjust: exact;
-//           width: 100%;
-//           height: auto;
-//         }
-
-//         .barcode-item {
-//           page-break-inside: avoid !important;
-//           break-inside: avoid !important;
-//         }
-
-//         /* Thermal printer optimization */
-//         * {
-//           color: black !important;
-//           background: transparent !important;
-//         }
-//       }
-//     </style>
-//   </head>
-
-//   <body>
-//     <div class="barcode-container">
-//       ${Array.from({ length: printQuantity }).map((_, i) => `
-//         <div class="barcode-item">
-//           <svg class="barcode-svg" id="barcode-${i}"></svg>
-//           <div class="sku-text">SKU: ${productSkuForPrint}</div>
-//           <div class="barcode-number">${generatedBarcode}</div>
-//           <div class="date-text">${printDate}</div>
-//         </div>
-//       `).join("")}
-//     </div>
-
-//     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
-//     <script>
-//       document.addEventListener('DOMContentLoaded', function() {
-//         // Generate barcodes
-//         ${Array.from({ length: printQuantity }).map((_, i) => `
-//           try {
-//             JsBarcode("#barcode-${i}", "${generatedBarcode}", {
-//               format: "CODE128",
-//               width: 2,
-//               height: 40,
-//               displayValue: false,
-//               margin: 0,
-//               background: "transparent",
-//               lineColor: "#000000",
-//               valid: function(valid) {
-//                 if (!valid) {
-//                   console.warn("Invalid barcode generated");
-//                 }
-//               }
-//             });
-//           } catch (error) {
-//             console.error("Barcode generation error:", error);
-//           }
-//         `).join("")}
-
-//         // Auto-print after a short delay
-//         setTimeout(function() {
-//           window.print();
-//         }, 300);
-//       });
-
-//       // Handle after print
-//       window.onafterprint = function() {
-//         setTimeout(function() {
-//           if (!document.hidden) {
-//             window.close();
-//           }
-//         }, 1000);
-//       };
-
-//       // Fallback close if onafterprint doesn't fire
-//       window.addEventListener('afterprint', function() {
-//         setTimeout(function() {
-//           window.close();
-//         }, 1000);
-//       });
-//     </script>
-//   </body>
-//   </html>
-//   `;
-
-//     // Open print window
-//     const printWindow = window.open("", "_blank");
-//     if (!printWindow) {
-//       alert("Please allow popups to print barcodes.");
-//       return;
-//     }
-
-//     printWindow.document.write(printContent);
-//     printWindow.document.close();
-//   };
-
-
-
-//   // Generate barcode on demand
-//   const handleGenerateBarcode = () => {
-//     if (formValues.sku && formValues.name) {
-//       const barcode = generateUniqueBarcode(formValues.sku, formValues.name)
-//       setValue("barcode", barcode)
-//       toast.success("Barcode generated successfully!")
-//     } else {
-//       toast.error("Please enter SKU and Product Name first")
 //     }
 //   }
 
@@ -1200,15 +1227,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //         </CardHeader>
 //         <CardContent>
 //           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-//             {/* Debug section - remove in production */}
-//             <div className="p-2 mb-4 bg-yellow-50 border border-yellow-200 rounded text-sm">
-//               <p className="font-bold">Debug Info:</p>
-//               <p>Form Values: {JSON.stringify(formValues, null, 2)}</p>
-//               <p>Edit Mode: {editItem ? 'Yes' : 'No'}</p>
-//               <p>Show Print Dialog: {showPrintDialog ? 'Yes' : 'No'}</p>
-//               <p>Generated Barcode: {generatedBarcode}</p>
-//             </div>
-
 //             <div className="grid gap-4 md:grid-cols-2">
 //               {/* SKU */}
 //               <div className="space-y-2">
@@ -1240,41 +1258,27 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //                 )}
 //               </div>
 
-//               {/* Barcode with generate button */}
-//               <div className="space-y-2">
-//                 <div className="flex items-center justify-between">
+//               {/* Barcode will be generated by backend - show only in edit mode */}
+//               {editItem && (
+//                 <div className="space-y-2">
 //                   <Label htmlFor="barcode">Barcode</Label>
-//                   {!editItem && (
-//                     <Button
-//                       type="button"
-//                       variant="outline"
-//                       size="sm"
-//                       onClick={handleGenerateBarcode}
-//                       disabled={isLoading || !formValues.sku || !formValues.name}
-//                     >
-//                       Generate
-//                     </Button>
-//                   )}
+//                   <div className="flex items-center gap-2">
+//                     <Input
+//                       id="barcode"
+//                       defaultValue={editItem.barcode || ""}
+//                       placeholder="Generated by system"
+//                       disabled={true}
+//                       className="font-mono"
+//                     />
+//                     <span className="text-xs text-muted-foreground">
+//                       (Auto-generated)
+//                     </span>
+//                   </div>
+//                   <p className="text-xs text-muted-foreground">
+//                     Barcode is automatically generated by the system
+//                   </p>
 //                 </div>
-//                 <div className="flex gap-2">
-//                   <Input
-//                     id="barcode"
-//                     {...register("barcode")}
-//                     placeholder="Auto-generated barcode"
-//                     disabled={isLoading}
-//                     readOnly={!editItem}
-//                     className="flex-1"
-//                   />
-//                   {formValues.barcode && (
-//                     <Badge variant="secondary" className="flex items-center gap-1">
-//                       {formValues.barcode.slice(0, 6)}...
-//                     </Badge>
-//                   )}
-//                 </div>
-//                 <p className="text-xs text-muted-foreground">
-//                   {!editItem ? "Barcode will be auto-generated from SKU and name" : "Edit barcode if needed"}
-//                 </p>
-//               </div>
+//               )}
 
 //               {/* Category */}
 //               <div className="space-y-2">
@@ -1368,6 +1372,19 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //                 </p>
 //               </div>
 
+
+
+//               {/* Location */}
+//               <div className="space-y-2">
+//                 <Label htmlFor="location">Storage Location</Label>
+//                 <Input
+//                   id="location"
+//                   {...register("location")}
+//                   placeholder="Aisle 3, Shelf B"
+//                   disabled={isLoading}
+//                 />
+//               </div>
+
 //               {/* Purchase Price */}
 //               <div className="space-y-2">
 //                 <Label htmlFor="purchasePrice">Purchase Price *</Label>
@@ -1435,7 +1452,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //               </div>
 
 //               {/* Tax Rate */}
-//               <div className="space-y-2">
+//               {/* <div className="space-y-2">
 //                 <Label htmlFor="taxRate">Tax Rate (%)</Label>
 //                 <Input
 //                   id="taxRate"
@@ -1445,10 +1462,10 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //                   placeholder="7.5"
 //                   disabled={isLoading}
 //                 />
-//               </div>
+//               </div> */}
 
 //               {/* Reorder Point */}
-//               <div className="space-y-2">
+//               {/* <div className="space-y-2">
 //                 <Label htmlFor="reorderPoint">Reorder Point</Label>
 //                 <Input
 //                   id="reorderPoint"
@@ -1457,18 +1474,9 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //                   placeholder="10"
 //                   disabled={isLoading}
 //                 />
-//               </div>
+//               </div> */}
 
-//               {/* Location */}
-//               <div className="space-y-2">
-//                 <Label htmlFor="location">Storage Location</Label>
-//                 <Input
-//                   id="location"
-//                   {...register("location")}
-//                   placeholder="Aisle 3, Shelf B"
-//                   disabled={isLoading}
-//                 />
-//               </div>
+
 //             </div>
 
 //             {/* Description */}
@@ -1491,7 +1499,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //             </div>
 
 //             {/* Notes */}
-//             <div className="space-y-2">
+//             {/* <div className="space-y-2">
 //               <Label htmlFor="notes">Additional Notes</Label>
 //               <Textarea
 //                 id="notes"
@@ -1507,7 +1515,7 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //               <p className="text-xs text-muted-foreground">
 //                 {formValues.notes?.length || 0}/1000 characters
 //               </p>
-//             </div>
+//             </div> */}
 
 //             <div className="flex gap-3 pt-4">
 //               {editItem && onCancel && (
@@ -1549,100 +1557,16 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 //         </CardContent>
 //       </Card>
 
-//       {/* Print Barcode Dialog */}
-//       <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
-//         <DialogContent className="sm:max-w-md">
-//           <DialogHeader>
-//             <DialogTitle>Print Barcode Labels</DialogTitle>
-//             <DialogDescription>
-//               Print barcode labels for the newly created product.
-//             </DialogDescription>
-//           </DialogHeader>
-
-//           <div className="space-y-4">
-//             <div className="p-4 bg-gray-50 rounded-lg">
-//               <div className="text-sm font-medium mb-2">Product Information</div>
-//               <div className="grid grid-cols-2 gap-2 text-sm">
-//                 <div className="text-gray-600">Product Name:</div>
-//                 <div className="font-medium">{productNameForPrint}</div>
-
-//                 <div className="text-gray-600">SKU:</div>
-//                 <div className="font-medium">{productSkuForPrint}</div>
-
-//                 <div className="text-gray-600">Barcode:</div>
-//                 <div className="font-mono font-bold">{generatedBarcode}</div>
-//               </div>
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label htmlFor="printQuantity">Number of labels to print</Label>
-//               <div className="flex items-center gap-4">
-//                 <Input
-//                   id="printQuantity"
-//                   type="number"
-//                   min="1"
-//                   max="100"
-//                   value={printQuantity}
-//                   onChange={(e) => setPrintQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-//                   className="w-24"
-//                 />
-//                 <div className="flex gap-2">
-//                   <Button
-//                     type="button"
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={() => setPrintQuantity(prev => Math.max(1, prev - 1))}
-//                   >
-//                     -
-//                   </Button>
-//                   <Button
-//                     type="button"
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={() => setPrintQuantity(prev => Math.min(100, prev + 1))}
-//                   >
-//                     +
-//                   </Button>
-//                 </div>
-//               </div>
-//               <p className="text-xs text-muted-foreground">
-//                 Each page can fit approximately 4 labels
-//               </p>
-//             </div>
-
-//             <div className="p-4 border rounded-lg">
-//               <div className="text-sm font-medium mb-2">Preview</div>
-//               <div className="text-center p-4 bg-white border">
-//                 <div className="font-bold text-lg">{productNameForPrint}</div>
-//                 <div className="text-sm text-gray-600 mb-2">SKU: {productSkuForPrint}</div>
-//                 <div className="font-mono text-xl tracking-widest mb-2">{generatedBarcode}</div>
-//                 <div className="text-xs text-gray-500">
-//                   Generated: {new Date().toLocaleDateString()}
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-
-//           <DialogFooter className="flex gap-2 sm:justify-between">
-//             <Button
-//               type="button"
-//               variant="outline"
-//               onClick={() => setShowPrintDialog(false)}
-//             >
-//               <X className="mr-2 h-4 w-4" />
-//               Skip Printing
-//             </Button>
-//             <Button
-//               type="button"
-//               onClick={handlePrintBarcodes}
-//               className="bg-blue-600 hover:bg-blue-700"
-//             >
-//               <Printer className="mr-2 h-4 w-4" />
-//               Print {printQuantity} Label{printQuantity > 1 ? 's' : ''}
-//             </Button>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
+//       {/* Reusable Barcode Print Component */}
+//       <BarcodePrint
+//         open={showPrintDialog}
+//         onOpenChange={handlePrintDialogClose}
+//         productName={printData.productName}
+//         productSku={printData.productSku}
+//         barcode={printData.barcode}
+//         productPrice={printData.sellingPrice}
+//         onPrintComplete={handlePrintComplete}
+//       />
 //     </>
 //   )
 // }

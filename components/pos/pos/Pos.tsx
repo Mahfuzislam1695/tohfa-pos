@@ -121,7 +121,7 @@ export default function Pos() {
         "/sales",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Sale completed successfully!")
+                // toast.success("Sale completed successfully!")
                 printReceipt(data.data)
 
                 // Reset form
@@ -338,7 +338,6 @@ export default function Pos() {
         console.log("Submitting sale:", saleData)
         createSale(saleData)
     }
-
     const printReceipt = (sale: any) => {
         const receiptWindow = window.open("", "_blank")
         if (!receiptWindow) {
@@ -352,33 +351,248 @@ export default function Pos() {
         <head>
           <title>Receipt - ${sale.invoiceNumber || 'SALE'}</title>
           <style>
-            body { font-family: monospace; padding: 2px; max-width: 300px; margin: 0 auto; }
-            h2 { text-align: center; margin: 10px 0; }
-            .line { border-top: 1px dashed #000; margin: 10px 0; }
-            .row { display: flex; justify-content: space-between; margin: 5px 0; }
+            * { 
+              margin: 0; 
+              padding: 0; 
+              box-sizing: border-box; 
+            }
+            body { 
+              font-family: 'Courier New', monospace; 
+              font-size: 14px; 
+              line-height: 1.3;
+              max-width: 80mm; 
+              margin: 0 auto; 
+              padding: 10px 5px;
+            }
+            
+            /* Header Styles */
+            .shop-header { 
+              text-align: center; 
+              margin-bottom: 10px;
+            }
+            .shop-name { 
+              font-size: 20px; 
+              font-weight: bold;
+              letter-spacing: 1px;
+              margin-bottom: 3px;
+            }
+            .shop-tagline { 
+              font-size: 12px;
+              font-weight: semi-bold; 
+              margin-bottom: 5px;
+            }
+            .shop-address { 
+              font-size: 11px; 
+              line-height: 1.2;
+              margin-bottom: 8px;
+            }
+            .shop-phone { 
+              font-size: 11px; 
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+            
+            /* Divider Lines */
+            .divider {
+              border-top: 1px dashed #333;
+              margin: 8px 0;
+            }
+            .divider-thick {
+              border-top: 2px solid #333;
+              margin: 10px 0;
+            }
+            .divider-double {
+              border-top: 1px dashed #333;
+              border-bottom: 1px dashed #333;
+              height: 3px;
+              margin: 10px 0;
+            }
+            
+            /* Receipt Title */
+            .receipt-title {
+              text-align: center;
+              font-weight: bold;
+              font-size: 16px;
+              margin: 12px 0 10px 0;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            }
+            
+            /* Row Styles */
+            .row {
+              display: flex;
+              justify-content: space-between;
+              margin: 4px 0;
+              padding: 0 2px;
+            }
+            .row-label {
+              font-weight: bold;
+            }
+            .row-value {
+              font-weight: medium;
+              text-align: right;
+            }
+            .row-total {
+              font-weight: bold;
+              font-size: 15px;
+              margin: 6px 0;
+              padding: 2px;
+            }
+            
+            /* Table Styles */
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 10px 0;
+            }
+            .items-table thead th {
+              padding: 4px 2px;
+              border-bottom: 1px solid #333;
+              text-align: left;
+              font-size: 13px;
+            }
+            .items-table tbody td {
+              padding: 3px 2px;
+              border-bottom: 1px dotted #ddd;
+              vertical-align: top;
+              font-size: 13px;
+            }
+            .col-item {
+              width: 40%;
+              word-break: break-word;
+              max-width: 35mm;
+            }
+            .col-qty {
+              width: 15%;
+              text-align: center;
+            }
+            .col-price {
+              width: 20%;
+              text-align: right;
+            }
+            .col-total {
+              width: 25%;
+              text-align: right;
+              font-weight: bold;
+            }
+            
+            /* Amount Section */
+            .amount-section {
+              margin: 12px 0;
+            }
+            .amount-row {
+              display: flex;
+              justify-content: space-between;
+              margin: 4px 0;
+              padding: 0 2px;
+            }
+            .amount-label {
+              font-size: 13px;
+            }
+            .amount-value {
+              font-size: 13px;
+              font-weight: bold;
+            }
+            .grand-total {
+              font-size: 16px;
+              font-weight: bold;
+              margin-top: 8px;
+              padding-top: 8px;
+              border-top: 2px solid #333;
+            }
+            
+            /* Payment Section */
+            .payment-section {
+              margin: 15px 0 10px 0;
+            }
+            
+            /* Footer */
+            .thankyou {
+              text-align: center;
+              font-size: 12px;
+              margin: 10px 0 5px 0;
+              font-weight: medium;
+            }
+            .come-again {
+              text-align: center;
+              font-size: 13px;
+              margin-bottom: 8px;
+              font-style: italic;
+            }
+            .powered-by {
+              text-align: center;
+              font-size: 12px;
+              font-weight: 600;
+              margin-top: 5px;
+              line-height: 1.1;
+            }
+            
+            /* Alignment Classes */
+            .text-left { text-align: left; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
             .bold { font-weight: bold; }
-            .center { text-align: center; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { text-align: left; padding: 5px 0; }
-            .right { text-align: right; }
+            
+            /* Print Optimizations */
+            @media print {
+              body { 
+                padding: 5px 3px;
+                font-size: 13px;
+              }
+              .shop-name { font-size: 18px; }
+              .receipt-title { font-size: 15px; }
+            }
           </style>
         </head>
         <body>
-          <h2>AT-TOHFA</h2>
-          <div class="center">Sale Receipt</div>
-          <div class="line"></div>
-          <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber || 'N/A'}</span></div>
-          <div class="row"><span>Date:</span><span>${new Date(sale.createdAt || new Date()).toLocaleString()}</span></div>
-          <div class="row"><span>Customer:</span><span>${sale.customerName}</span></div>
-          ${sale.customerPhone ? `<div class="row"><span>Phone:</span><span>${sale.customerPhone}</span></div>` : ""}
-          <div class="line"></div>
-          <table>
+          <!-- SHOP HEADER -->
+          <div class="shop-header">
+            <div class="shop-name">AT-TOHFA</div>
+            <div class="shop-tagline">Gift Shop & Stationery</div>
+            <div class="shop-address">Kamarpara, Road-1, House-1</div>
+            <div class="shop-phone">Phone: 01750256844</div>
+          </div>
+          
+          <div class="divider-double"></div>
+        
+          
+          <!-- INVOICE DETAILS -->
+          <div class="row">
+            <span class="row-label">Invoice:</span>
+            <span class="row-value">${sale.invoiceNumber || 'N/A'}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">Date:</span>
+            <span class="row-value">${new Date(sale.createdAt || new Date()).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        }).replace(',', '')}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">Customer:</span>
+            <span class="row-value">${sale.customerName || 'Walk-in Customer'}</span>
+          </div>
+          ${sale.customerPhone ? `
+          <div class="row">
+            <span class="row-label">Phone:</span>
+            <span class="row-value">${sale.customerPhone}</span>
+          </div>
+          ` : ""}
+          
+          <div class="divider"></div>
+          
+          <!-- ITEMS TABLE -->
+          <table class="items-table">
             <thead>
               <tr>
-                <th>Item</th>
-                <th class="right">Qty</th>
-                <th class="right">Price</th>
-                <th class="right">Total</th>
+                <th class="col-item text-left">Item</th>
+                <th class="col-qty text-center">Qty</th>
+                <th class="col-price text-right">Price</th>
+                <th class="col-total text-right">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -386,39 +600,182 @@ export default function Pos() {
                 .map(
                     (item: CartItem) => `
                 <tr>
-                  <td>${item.productName}</td>
-                  <td class="right">${item.saleQuantity} ${item.saleUnit}</td>
-                  <td class="right">৳${item.unitPrice.toFixed(2)}</td>
-                  <td class="right">৳${item.subtotal.toFixed(2)}</td>
+                  <td class="col-item text-left">${item.productName.substring(0, 20)}${item.productName.length > 20 ? '...' : ''}</td>
+                  <td class="col-qty text-center">${item.saleQuantity}</td>
+                  <td class="col-price text-right">${item.unitPrice.toFixed(2)}</td>
+                  <td class="col-total text-right">${item.subtotal.toFixed(2)}</td>
                 </tr>
               `,
                 )
                 .join("")}
             </tbody>
           </table>
-          <div class="line"></div>
-          <div class="row"><span>Subtotal:</span><span>৳${subtotal.toFixed(2)}</span></div>
-          ${discountAmount > 0 ? `<div class="row"><span>Discount:</span><span>-৳${discountAmount.toFixed(2)}</span></div>` : ""}
-          ${taxAmount > 0 ? `<div class="row"><span>Tax:</span><span>৳${taxAmount.toFixed(2)}</span></div>` : ""}
-          <div class="line"></div>
-          <div class="row bold"><span>TOTAL:</span><span>৳${total.toFixed(2)}</span></div>
-          ${paymentMethod === "cash"
+          
+          <div class="divider"></div>
+          
+          <!-- AMOUNT CALCULATIONS -->
+          <div class="amount-section">
+            <div class="amount-row">
+              <span class="amount-label">Subtotal:</span>
+              <span class="amount-value">${subtotal.toFixed(2)}</span>
+            </div>
+            ${discountAmount > 0 ? `
+            <div class="amount-row">
+              <span class="amount-label">Discount:</span>
+              <span class="amount-value">-${discountAmount.toFixed(2)}</span>
+            </div>
+            ` : ""}
+            ${taxAmount > 0 ? `
+            <div class="amount-row">
+              <span class="amount-label">Tax:</span>
+              <span class="amount-value">${taxAmount.toFixed(2)}</span>
+            </div>
+            ` : ""}
+            <div class="amount-row grand-total">
+              <span>TOTAL:</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </div>
+          
+          <!-- PAYMENT DETAILS -->
+          <div class="payment-section">
+            ${paymentMethod === "cash"
                 ? `
-            <div class="row"><span>Received:</span><span>৳${receivedAmountNum.toFixed(2)}</span></div>
-            <div class="row"><span>Change:</span><span>৳${changeAmount.toFixed(2)}</span></div>
-          `
+            <div class="row">
+              <span class="row-label">Received:</span>
+              <span class="row-value">${receivedAmountNum.toFixed(2)}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">Change:</span>
+              <span class="row-value">${changeAmount.toFixed(2)}</span>
+            </div>
+            `
                 : ""
             }
-          <div class="row"><span>Payment:</span><span>${paymentMethod.toUpperCase()}</span></div>
-          ${notes ? `<div class="line"></div><div class="row"><span>Notes:</span><span>${notes}</span></div>` : ""}
-          <div class="line"></div>
-          <div class="center">Thank you for shopping with us!</div>
-          <script>window.print(); setTimeout(() => window.close(), 1000);</script>
+            <div class="row">
+              <span class="row-label">Payment:</span>
+              <span class="row-value">${paymentMethod.toUpperCase()}</span>
+            </div>
+          </div>
+          
+          <!-- NOTES -->
+          ${notes ? `
+          <div class="divider"></div>
+          <div class="row">
+            <span class="row-label">Notes:</span>
+            <span class="row-value">${notes.substring(0, 30)}${notes.length > 30 ? '...' : ''}</span>
+          </div>
+          ` : ""}
+          
+          <div class="divider-thick"></div>
+          
+          <!-- FOOTER -->
+          <div class="thankyou">Thanks for shopping—see you again!</div>
+          <div class="powered-by">
+            Powered by: aethrasoft, 01750256844
+          </div>
+          
+          <!-- PRINT SCRIPT -->
+          <script>
+            window.onload = function() {
+              // Focus and print
+              window.focus();
+              setTimeout(function() {
+                window.print();
+              }, 250);
+              
+              // Close after print (with delay for print dialog)
+              setTimeout(function() {
+                window.close();
+              }, 1500);
+            };
+          </script>
         </body>
       </html>
     `)
         receiptWindow.document.close()
     }
+
+    // const printReceipt = (sale: any) => {
+    //     const receiptWindow = window.open("", "_blank")
+    //     if (!receiptWindow) {
+    //         toast.error("Please allow popups to print receipt")
+    //         return
+    //     }
+
+    //     receiptWindow.document.write(`
+    //   <!DOCTYPE html>
+    //   <html>
+    //     <head>
+    //       <title>Receipt - ${sale.invoiceNumber || 'SALE'}</title>
+    //       <style>
+    //         body { font-family: monospace; padding: 2px; max-width: 300px; margin: 0 auto; }
+    //         h2 { text-align: center; margin: 10px 0; }
+    //         .line { border-top: 1px dashed #000; margin: 10px 0; }
+    //         .row { display: flex; justify-content: space-between; margin: 5px 0; }
+    //         .bold { font-weight: bold; }
+    //         .center { text-align: center; }
+    //         table { width: 100%; border-collapse: collapse; }
+    //         th, td { text-align: left; padding: 5px 0; }
+    //         .right { text-align: right; }
+    //       </style>
+    //     </head>
+    //     <body>
+    //       <h2>AT-TOHFA</h2>
+    //       <div class="center">Sale Receipt</div>
+    //       <div class="line"></div>
+    //       <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber || 'N/A'}</span></div>
+    //       <div class="row"><span>Date:</span><span>${new Date(sale.createdAt || new Date()).toLocaleString()}</span></div>
+    //       <div class="row"><span>Customer:</span><span>${sale.customerName}</span></div>
+    //       ${sale.customerPhone ? `<div class="row"><span>Phone:</span><span>${sale.customerPhone}</span></div>` : ""}
+    //       <div class="line"></div>
+    //       <table>
+    //         <thead>
+    //           <tr>
+    //             <th>Item</th>
+    //             <th class="right">Qty</th>
+    //             <th class="right">Price</th>
+    //             <th class="right">Total</th>
+    //           </tr>
+    //         </thead>
+    //         <tbody>
+    //           ${cart
+    //             .map(
+    //                 (item: CartItem) => `
+    //             <tr>
+    //               <td>${item.productName}</td>
+    //               <td class="right">${item.saleQuantity} ${item.saleUnit}</td>
+    //               <td class="right">৳${item.unitPrice.toFixed(2)}</td>
+    //               <td class="right">৳${item.subtotal.toFixed(2)}</td>
+    //             </tr>
+    //           `,
+    //             )
+    //             .join("")}
+    //         </tbody>
+    //       </table>
+    //       <div class="line"></div>
+    //       <div class="row"><span>Subtotal:</span><span>৳${subtotal.toFixed(2)}</span></div>
+    //       ${discountAmount > 0 ? `<div class="row"><span>Discount:</span><span>-৳${discountAmount.toFixed(2)}</span></div>` : ""}
+    //       ${taxAmount > 0 ? `<div class="row"><span>Tax:</span><span>৳${taxAmount.toFixed(2)}</span></div>` : ""}
+    //       <div class="line"></div>
+    //       <div class="row bold"><span>TOTAL:</span><span>৳${total.toFixed(2)}</span></div>
+    //       ${paymentMethod === "cash"
+    //             ? `
+    //         <div class="row"><span>Received:</span><span>৳${receivedAmountNum.toFixed(2)}</span></div>
+    //         <div class="row"><span>Change:</span><span>৳${changeAmount.toFixed(2)}</span></div>
+    //       `
+    //             : ""
+    //         }
+    //       <div class="row"><span>Payment:</span><span>${paymentMethod.toUpperCase()}</span></div>
+    //       ${notes ? `<div class="line"></div><div class="row"><span>Notes:</span><span>${notes}</span></div>` : ""}
+    //       <div class="line"></div>
+    //       <div class="center">Thank you for shopping with us!</div>
+    //       <script>window.print(); setTimeout(() => window.close(), 1000);</script>
+    //     </body>
+    //   </html>
+    // `)
+    //     receiptWindow.document.close()
+    // }
 
     const getCompatibleUnits = (productUnit: string) => {
         const productUnitDef = getUnitByShortName(productUnit)
