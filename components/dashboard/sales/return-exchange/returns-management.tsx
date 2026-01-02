@@ -247,7 +247,7 @@ export function ReturnsManagement({ saleId, showCreateButton = true }: ReturnsMa
                                         <TableHead>Return #</TableHead>
                                         <TableHead>Invoice</TableHead>
                                         <TableHead>Customer</TableHead>
-                                        <TableHead>Type</TableHead>
+                                        {/* <TableHead>Type</TableHead> */}
                                         <TableHead>Items</TableHead>
                                         <TableHead>Amount</TableHead>
                                         <TableHead>Status</TableHead>
@@ -273,7 +273,7 @@ export function ReturnsManagement({ saleId, showCreateButton = true }: ReturnsMa
                                                     <div className="text-xs text-muted-foreground">{ret.customerPhone}</div>
                                                 )}
                                             </TableCell>
-                                            <TableCell>{getTypeBadge(ret.returnType)}</TableCell>
+                                            {/* <TableCell>{getTypeBadge(ret.returnType)}</TableCell> */}
                                             <TableCell>
                                                 <Badge variant="outline">
                                                     {ret.returnItems.length} items
@@ -321,7 +321,8 @@ export function ReturnsManagement({ saleId, showCreateButton = true }: ReturnsMa
                         <DialogHeader>
                             <DialogTitle>Return Details</DialogTitle>
                         </DialogHeader>
-                        <ReturnDetails returnData={selectedReturn} />
+                        <ReturnDetails returnId={selectedReturn.returnID} />
+                        {/* <ReturnDetails returnData={selectedReturn} /> */}
                     </DialogContent>
                 </Dialog>
             )}

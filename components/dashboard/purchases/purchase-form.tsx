@@ -15,8 +15,8 @@ import * as z from "zod"
 import { toast } from "react-toastify"
 import { useQueryClient } from "@tanstack/react-query"
 import { formatDate } from "@/lib/units"
-import { useProducts } from "@/hooks/use-products"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useGetAll } from "@/hooks/useGet"
 
 
 interface PurchaseFormProps {
@@ -52,7 +52,22 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
     const [date, setDate] = useState<Date>()
 
     // Fetch products for dropdown
-    const { products, isLoading: productsLoading } = useProducts()
+    // const { products, isLoading: productsLoading } = useProducts()
+
+    // const { data: products, isLoading: productsLoading } = useGetAll<any>(
+    //     `/products/dropdown/active`,
+    //     ["productsDropdown"]
+    // )
+
+    const { data, isLoading: productsLoading, refetch } = useGetAll<any>(
+        `/products/dropdown/active`,
+        ["productsDropdown"]
+    )
+
+    const products = data?.data || []
+
+
+    console.log("Products loaded:", products)
 
     const {
         register,
@@ -287,8 +302,9 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
                                         <p className="font-medium">{selectedProduct.stockQuantity}</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Unit</p>
-                                        <p className="font-medium">{selectedProduct.unit}</p>
+                                        <p className="text-sm text-muted-foreground">Selling Price</p>
+                                        <p className="font-medium">{selectedProduct.sellingPrice
+                                        } TK</p>
                                     </div>
                                 </div>
                             </div>

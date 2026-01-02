@@ -365,8 +365,8 @@ export default function Sales({ onView, refresh }: SalesListProps) {
                 <ReturnsManagement />
             ) : (<>
 
-                {/* Statistics Cards */}
-                <div className="grid gap-4 md:grid-cols-4">
+                { /* Statistics Cards */}
+                {/* <div className="grid gap-4 md:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
@@ -416,6 +416,98 @@ export default function Sales({ onView, refresh }: SalesListProps) {
                             <p className="text-xs text-muted-foreground">
                                 Total tax: ৳{statistics?.totalTax?.toFixed(2) || '0.00'}
                             </p>
+                        </CardContent>
+                    </Card>
+                </div> */}
+
+                { /* Statistics Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {/* Total Sales Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statistics?.totalSales || 0}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                    Returns: {statistics?.totalReturns || 0}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                    {statistics?.returnRate?.toFixed(1) || 0}% rate
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Revenue Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Net Revenue</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-emerald-600">
+                                ৳{statistics?.netRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                            </div>
+                            <div className="space-y-1 mt-1">
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-muted-foreground">Gross:</span>
+                                    <span>৳{statistics?.grossRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-muted-foreground">Refunded:</span>
+                                    <span className="text-red-500">-৳{statistics?.totalRefundedAmount?.toFixed(2) || '0.00'}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Items Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Net Items Sold</CardTitle>
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{statistics?.netItems || 0}</div>
+                            <div className="space-y-1 mt-1">
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-muted-foreground">Gross Items:</span>
+                                    <span>{statistics?.grossItems || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-muted-foreground">Returned:</span>
+                                    <span className="text-red-500">-{statistics?.returnedItems || 0}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Performance Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">Avg. Sale:</span>
+                                    <span className="font-semibold">৳{statistics?.averageNetSaleValue?.toFixed(2) || '0.00'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">Items/Sale:</span>
+                                    <span className="font-semibold">{statistics?.averageItemsPerSale?.toFixed(1) || '0'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">Refund Rate:</span>
+                                    <span className={`font-semibold ${(statistics?.refundRate || 0) > 10 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                        {statistics?.refundRate?.toFixed(1) || 0}%
+                                    </span>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

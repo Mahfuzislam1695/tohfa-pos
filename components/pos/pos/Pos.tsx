@@ -93,7 +93,7 @@ export default function Pos() {
     const [customerPhone, setCustomerPhone] = useState("")
     const [discount, setDiscount] = useState(0)
     const [tax, setTax] = useState(0)
-    const [paymentMethod, setPaymentMethod] = useState("cash")
+    const [paymentMethod, setPaymentMethod] = useState<string>("CASH")
     const [receivedAmount, setReceivedAmount] = useState("")
     const [notes, setNotes] = useState("")
     const containerRef = useRef<HTMLDivElement>(null)
@@ -522,7 +522,7 @@ export default function Pos() {
             .powered-by {
               text-align: center;
               font-size: 12px;
-              font-weight: 600;
+              font-weight: 500;
               margin-top: 5px;
               line-height: 1.1;
             }

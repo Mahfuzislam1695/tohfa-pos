@@ -112,7 +112,7 @@ export default function Products() {
                         <DialogTitle>Product Details</DialogTitle>
                     </DialogHeader>
                     {viewingProduct && (
-                        <ProductDetails product={viewingProduct} />
+                        <ProductDetails productID={viewingProduct.productID} />
                     )}
                 </DialogContent>
             </Dialog>

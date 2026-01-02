@@ -54,6 +54,8 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
     const [isLoadingProducts, setIsLoadingProducts] = useState(false)
     const queryClient = useQueryClient()
 
+
+
     const {
         register,
         handleSubmit,
@@ -64,7 +66,7 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
     } = useForm<ReturnFormData>({
         resolver: zodResolver(returnSchema),
         defaultValues: {
-            returnType: ReturnType.FULL_RETURN,
+            returnType: ReturnType.PARTIAL_RETURN,
             returnReason: ReturnReason.OTHER,
             restockingFee: "0",
             items: [],
@@ -117,7 +119,6 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
         "/returns",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Return request created successfully!")
                 queryClient.invalidateQueries({ queryKey: ["sales"] })
                 queryClient.invalidateQueries({ queryKey: ["returns"] })
                 onClose()
@@ -182,15 +183,6 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
         const itemData = newItems.get(sellItemId)
         if (itemData) {
             newItems.set(sellItemId, { ...itemData, condition })
-            setSelectedItems(newItems)
-        }
-    }
-
-    const handleNotesChange = (sellItemId: number, notes: string) => {
-        const newItems = new Map(selectedItems)
-        const itemData = newItems.get(sellItemId)
-        if (itemData) {
-            newItems.set(sellItemId, { ...itemData, notes })
             setSelectedItems(newItems)
         }
     }
@@ -274,7 +266,7 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
                     </div>
 
                     {/* Return Type Selection */}
-                    <div className="space-y-3">
+                    <div className="space-y-3 hidden">
                         <Label>Return Type</Label>
                         <div className="grid grid-cols-3 gap-2">
                             {Object.values(ReturnType).map((type) => (
@@ -405,8 +397,8 @@ export function ReturnModal({ sale, isOpen, onClose, onSuccess }: ReturnModalPro
                                                             type="number"
                                                             min="1"
                                                             max={availableForReturn}
-                                                            value={selectedData?.quantity || 1}
-                                                            onChange={(e) => handleQuantityChange(item.sellItemID, parseInt(e.target.value) || 1)}
+                                                            value={selectedData?.quantity}
+                                                            onChange={(e) => handleQuantityChange(item.sellItemID, parseInt(e.target.value))}
                                                             className="w-20"
                                                         />
                                                     )}
