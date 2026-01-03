@@ -8,8 +8,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <DashboardSidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardHeader />
-                <main className="flex-1 overflow-y-auto  bg-background">
-                    {children}
+                <main className="flex-1 overflow-y-auto bg-background">
+                    <div className="min-h-full flex flex-col">                    {children}
+                    </div>
                 </main>
             </div>
         </div>
