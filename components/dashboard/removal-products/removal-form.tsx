@@ -116,7 +116,7 @@ export function RemovalForm({ editItem, onSuccess, onCancel }: RemovalFormProps)
         "/removals",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Product removed successfully!");
+                // toast.success("Product removed successfully!");
                 reset();
                 queryClient.invalidateQueries({ queryKey: ["removals"] });
                 queryClient.invalidateQueries({ queryKey: ["products"] }); // Refresh product stock
@@ -134,7 +134,7 @@ export function RemovalForm({ editItem, onSuccess, onCancel }: RemovalFormProps)
         `/removals/${editItem?.removalID}`,
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Removal record updated successfully!");
+                // toast.success("Removal record updated successfully!");
                 reset();
                 queryClient.invalidateQueries({ queryKey: ["removals"] });
                 queryClient.invalidateQueries({ queryKey: ["products"] });

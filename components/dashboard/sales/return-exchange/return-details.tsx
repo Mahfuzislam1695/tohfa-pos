@@ -34,7 +34,7 @@ export function ReturnDetails({ returnId }: ReturnDetailsProps) {
     `/returns/${returnId}/approve`,
     (data: any) => {
       if (data?.success) {
-        toast.success("Return approved successfully!")
+        // toast.success("Return approved successfully!")
         // Force immediate refetch
         refetch()
         // Also invalidate queries to update other components
@@ -50,7 +50,7 @@ export function ReturnDetails({ returnId }: ReturnDetailsProps) {
     `/returns/${returnId}/complete`,
     (data: any) => {
       if (data?.success) {
-        toast.success("Return completed successfully!")
+        // toast.success("Return completed successfully!")
         // Force immediate refetch
         refetch()
         // Also invalidate queries
@@ -67,7 +67,7 @@ export function ReturnDetails({ returnId }: ReturnDetailsProps) {
     `/returns/${returnId}/reject`,
     (data: any) => {
       if (data?.success) {
-        toast.success("Return rejected successfully!")
+        // toast.success("Return rejected successfully!")
         // Force immediate refetch
         refetch()
         // Also invalidate queries

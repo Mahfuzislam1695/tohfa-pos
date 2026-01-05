@@ -108,7 +108,7 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
             setIsSubmitting(false)
 
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Purchase batch created successfully!")
+                // toast.success("Purchase batch created successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["purchases"] })
                 onSuccess?.()
@@ -129,7 +129,7 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
             setIsSubmitting(false)
 
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Purchase batch updated successfully!")
+                // toast.success("Purchase batch updated successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["purchases"] })
                 onSuccess?.()

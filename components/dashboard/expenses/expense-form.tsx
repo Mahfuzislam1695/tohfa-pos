@@ -99,7 +99,7 @@ export function ExpenseForm({ editItem, onSuccess, onCancel }: ExpenseFormProps)
         "/expenses",
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Expense created successfully!")
+                // toast.success("Expense created successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["expenses"] })
                 onSuccess?.()
@@ -116,7 +116,7 @@ export function ExpenseForm({ editItem, onSuccess, onCancel }: ExpenseFormProps)
         `/expenses/${editItem?.expenseID}`,
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("Expense updated successfully!")
+                // toast.success("Expense updated successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["expenses"] })
                 onSuccess?.()
