@@ -16,7 +16,7 @@ import { formatCurrency, formatDate } from "@/lib/units"
 
 
 export default function Reports() {
-    const [activeTab, setActiveTab] = useState("sales")
+    const [activeTab, setActiveTab] = useState("overview")
     const [dateFilter, setDateFilter] = useState<ReportPeriod>(ReportPeriod.THIS_MONTH)
     const [filters, setFilters] = useState<ReportFilters>({
         period: ReportPeriod.THIS_MONTH,
