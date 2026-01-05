@@ -216,7 +216,7 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
             </div>
 
             {/* Filters Card */}
-            <Card>
+            {/* <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -232,7 +232,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {/* Search */}
                         <div className="space-y-2">
                             <Label>Search</Label>
                             <div className="relative">
@@ -246,7 +245,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                             </div>
                         </div>
 
-                        {/* Date Range */}
                         <div className="space-y-2">
                             <Label>Date Range</Label>
                             <div className="flex gap-2">
@@ -265,7 +263,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                             </div>
                         </div>
 
-                        {/* Category */}
                         <div className="space-y-2">
                             <Label>Category</Label>
                             <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory | 'all')}>
@@ -283,7 +280,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                             </Select>
                         </div>
 
-                        {/* Payment Method */}
                         <div className="space-y-2">
                             <Label>Payment Method</Label>
                             <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as ExpensePaymentMethod | 'all')}>
@@ -301,7 +297,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                             </Select>
                         </div>
 
-                        {/* Amount Range */}
                         <div className="space-y-2">
                             <Label>Amount Range</Label>
                             <div className="flex gap-2">
@@ -320,7 +315,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                             </div>
                         </div>
 
-                        {/* Sort Order */}
                         <div className="space-y-2">
                             <Label>Sort By</Label>
                             <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -337,7 +331,7 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Expenses Table */}
             <Card>
