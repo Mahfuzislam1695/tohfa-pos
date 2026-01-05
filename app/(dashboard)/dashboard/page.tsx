@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 export default function DashboardPage() {
     const DynamicDashboard = dynamic(() => import("@/components/dashboard/dashboard/Dashboard"), {
-        loading: () => <Loader className="animate-spin" />,
+        loading: () => <div className=""><Loader className="animate-spin" /></div>,
     });
     return <DynamicDashboard />;
 }

@@ -6,7 +6,6 @@ import { getBaseUrl } from "@/config/envConfig";
 import { toast } from "react-toastify";
 import { getCookie } from "@/utils/local-storage";
 import { accessTokenCreate } from "@/actions/cookiesAction";
-import { useRouter } from "next/navigation";
 
 const instance = axios.create({
   baseURL: getBaseUrl(),

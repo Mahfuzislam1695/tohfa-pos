@@ -1,4 +1,6 @@
-import { Settings, User } from "lucide-react"
+"use client";
+
+import { LogOut, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,8 +12,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { logout } from "@/services/auth.service"
+import { useState } from "react";
 
 export function DashboardHeader() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+    try {
+      await logout(); // Make sure logout is imported or available
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <header className="sticky top-0 z-40 border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="flex h-16 items-center gap-4 px-6">
@@ -48,7 +61,17 @@ export function DashboardHeader() {
                 <span>{"Settings"}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {/* <DropdownMenuItem className="text-destructive" onClick={() => logout()}>{"Sign out"}</DropdownMenuItem> */}
+              <DropdownMenuItem
+                className="text-destructive cursor-pointer"
+                onSelect={(event) => {
+                  event.preventDefault();
+                  handleLogout();
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>{isLoading ? "Signing out..." : "Sign out"}</span>
+              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
