@@ -16,8 +16,6 @@ interface ProductDetailsProps {
 
 export function ProductDetails({ productID }: ProductDetailsProps) {
 
-    console.log("productID", productID);
-
     const { data: product, refetch, isLoading, error } = useGet<any>(
         `/products/${productID}/details`,
         ["productDetails"]

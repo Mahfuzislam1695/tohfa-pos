@@ -78,8 +78,6 @@ export function RemovalList({ onEdit, onView, refresh }: RemovalListProps) {
         filters,
     });
 
-    console.log("removals", removals);
-
 
     // Delete mutation
     const { mutate: deleteRemoval, isPending: isDeleting } = useDelete(

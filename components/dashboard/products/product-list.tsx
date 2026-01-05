@@ -33,8 +33,6 @@ export function ProductList({ onEdit, onView, refresh }: ProductListProps) {
   // Use products hook with debounced search and pagination
   const { products, meta, isLoading, refetch, setSearchTerm, searchTerm, itemsPerPage, setItemsPerPage, currentPage, setCurrentPage } = useProducts()
 
-  console.log("kk", products, meta);
-
   // Delete mutation
   const { mutate: deleteProduct, isPending: isDeleting } = useDelete(
     "/products",

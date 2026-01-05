@@ -38,19 +38,6 @@ export const removeUserInfo = (key: string) => {
   return localStorage.removeItem(key);
 };
 
-// export async function logout() {
-//   // Delete the refresh token from cookies
-//   await refreshDelete();
-//   await accessTokenDelete();
-
-//   // Remove user-specific information from localStorage
-//   removeUserInfo("accessToken"); // Replace "userInfo" with the actual key you use
-//   await refreshDelete();
-
-//   // Redirect to the home page
-//   window.location.href = '/login';
-//   redirect("/login");
-// }
 
 export async function logout() {
   try {
@@ -68,8 +55,6 @@ export async function logout() {
 
 export const getNewAccessToken = async () => {
   const refreshToken = Cookies.get('refreshToken'); // Get from client-side cookies
-
-  console.log("refreshToken", refreshToken);
 
   return axiosInstance({
     url: `${getBaseUrl()}/auth/refresh`,

@@ -149,7 +149,6 @@ instance.interceptors.response.use(
     if (status === 401) {
       // Prevent infinite retry loops
       if (originalRequest._retry || originalRequest.url?.includes('/auth/refresh')) {
-        console.log("Logging out due to auth failure");
         logout();
         return Promise.reject(error);
       }
@@ -162,11 +161,8 @@ instance.interceptors.response.use(
           isRefreshing = true;
 
           try {
-            console.log("Attempting to refresh token...");
             const response = await getNewAccessToken();
             const newAccessToken = response.data.access_token;
-
-            console.log("New access token received");
 
             // Update token in cookies/storage
             accessTokenCreate(newAccessToken);
@@ -226,7 +222,6 @@ instance.interceptors.response.use(
     // Handle 400 Bad Request
     else if (status === 400) {
       if (errorMessage.includes("Invalid refresh token")) {
-        console.log("Invalid refresh token detected");
         logout();
         return Promise.reject(error);
       }

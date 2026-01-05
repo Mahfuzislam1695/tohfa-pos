@@ -63,7 +63,6 @@ type RemovalFormData = z.infer<typeof removalSchema>;
 export function RemovalForm({ editItem, onSuccess, onCancel }: RemovalFormProps) {
     const queryClient = useQueryClient();
     const { products, isLoading: productsLoading } = useProductsDropdown();
-    console.log("product", products);
 
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [showLossCalculator, setShowLossCalculator] = useState(false);

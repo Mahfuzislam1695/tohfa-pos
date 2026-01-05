@@ -334,17 +334,12 @@ export default function Pos() {
             receivedAmount: paymentMethod === "cash" ? receivedAmountNum : total,
             notes: notes || ""
         }
-
-        console.log("Submitting sale:", saleData)
         createSale(saleData)
     }
 
     const printReceipt = (sale: any) => {
         const receiptWindow = window.open("", "_blank")
         if (!receiptWindow) return
-
-        console.log("ok", sale);
-
 
         const cartItems = sale.items || []
         const subtotal = sale.subtotal || 0

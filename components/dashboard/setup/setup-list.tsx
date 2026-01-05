@@ -35,8 +35,6 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
   const setItemsPerPage = hook?.setItemsPerPage || (() => { })
   const refetch = hook?.refetch || (() => { })
 
-  console.log("");
-
 
   // Delete mutation
   const { mutate: deleteItem, isPending: isDeleting } = useDelete(

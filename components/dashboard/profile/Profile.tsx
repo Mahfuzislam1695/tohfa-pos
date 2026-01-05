@@ -52,8 +52,6 @@ export default function Profile() {
         }
     )
 
-    console.log("userdata", userData);
-
     // Profile form
     const {
         register: registerProfile,
@@ -176,8 +174,6 @@ export default function Profile() {
             setMessage({ type: "success", text: "No changes to update" })
             return
         }
-
-        console.log("Updating profile with:", updateData)
         updateProfile(updateData)
     }
 
@@ -186,8 +182,7 @@ export default function Profile() {
             currentPassword: data.currentPassword,
             newPassword: data.newPassword,
         }
-
-        console.log("Changing password with:", passwordData)
+        
         changePassword(passwordData)
     }
 

@@ -78,7 +78,7 @@ export function UserForm({ editItem, onSuccess, onCancel }: UserFormProps) {
             setIsSubmitting(false)
 
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("User created successfully!")
+                // toast.success("User created successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["users"] })
                 onSuccess?.()
@@ -98,7 +98,7 @@ export function UserForm({ editItem, onSuccess, onCancel }: UserFormProps) {
             setIsSubmitting(false)
 
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
-                toast.success("User updated successfully!")
+                // toast.success("User updated successfully!")
                 reset()
                 queryClient.invalidateQueries({ queryKey: ["users"] })
                 onSuccess?.()

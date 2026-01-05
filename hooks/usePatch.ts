@@ -13,7 +13,6 @@ export const usePatch = <T>(
     mutationFn: (data: Record<string, unknown>) =>
       postService.patch(endpoint, data),
     onSuccess: (data: any) => {
-      console.log("toast message", data);
 
       if (data.statusCode >= 200 && data.statusCode < 300) {
         toast.success(data.message ?? "Update successful!");

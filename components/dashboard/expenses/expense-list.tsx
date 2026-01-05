@@ -49,8 +49,6 @@ export function ExpenseList({ onEdit, refresh }: ExpenseListProps) {
         refetch
     } = useExpenses()
 
-    console.log("expenses", expenses);
-
 
     const [viewingExpense, setViewingExpense] = useState<any>(null)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)

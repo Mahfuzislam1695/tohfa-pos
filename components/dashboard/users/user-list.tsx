@@ -34,9 +34,6 @@ export function UserList({ onEdit, refresh }: UserListProps) {
     } = useUsers()
 
 
-    console.log("Users:", users);
-
-
     const [viewingUser, setViewingUser] = useState<any>(null)
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)

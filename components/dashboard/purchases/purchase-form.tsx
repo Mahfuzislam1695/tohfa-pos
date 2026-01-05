@@ -66,9 +66,6 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
 
     const products = data?.data || []
 
-
-    console.log("Products loaded:", products)
-
     const {
         register,
         handleSubmit,
@@ -149,8 +146,6 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
     // Initialize form with edit data
     useEffect(() => {
         if (editItem) {
-            console.log("Setting edit item data:", editItem)
-
             setValue("productID", editItem.productID?.toString() || editItem.product?.productID?.toString() || "")
             setValue("quantity", editItem.quantity.toString())
             setValue("unitCost", editItem.unitCost.toString())
@@ -176,7 +171,6 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
     }, [editItem, productId, setValue, reset])
 
     const onSubmit = async (data: PurchaseFormData) => {
-        console.log("Form submitted with data:", data)
 
         // Validate all fields before submission
         const isValid = await trigger()
@@ -194,9 +188,6 @@ export function PurchaseForm({ productId, editItem, onSuccess, onCancel }: Purch
             notes: data.notes || undefined,
             reason: data.reason || undefined,
         }
-
-        console.log("Submitting purchase data:", dataToSubmit)
-        console.log("Product ID:", data.productID)
 
         if (editItem?.batchID) {
             // For updates, we use the inventory/batches endpoint

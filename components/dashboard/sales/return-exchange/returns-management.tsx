@@ -48,10 +48,6 @@ export function ReturnsManagement({ saleId, showCreateButton = true }: ReturnsMa
 
     const returnsData: ProductReturn[] = returnsData1?.data || [];
 
-
-    console.log("returnData", returnsData);
-
-
     // const handleExportCSV = () => {
     //     if (returns.length === 0) return
     //     exportReturnsToCSV(returns, "returns-report")

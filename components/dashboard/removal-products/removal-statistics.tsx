@@ -10,9 +10,6 @@ import { Progress } from "@/components/ui/progress";
 export function RemovalStatistics() {
     const { statistics, isLoading, error } = useRemovalStatistics();
 
-    console.log("statistics", statistics);
-
-
     if (isLoading) return <div>Loading statistics...</div>;
     if (error) return <div>Error loading statistics</div>;
     if (!statistics) return <div>No statistics available</div>;

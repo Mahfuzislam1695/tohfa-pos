@@ -17,8 +17,6 @@ export default function Dashboard() {
     const { dashboardData, isLoading, error, refetch } = useDashboard()
     const [refreshing, setRefreshing] = useState(false)
 
-    console.log("dashboardData", dashboardData);
-
 
     const handleRefresh = async () => {
         setRefreshing(true)
@@ -71,8 +69,6 @@ export default function Dashboard() {
         removalLossToday: 0,
         profitMarginToday: 0,
     }
-
-    console.log("stats", stats);
 
 
     const topProducts = dashboardData?.topProducts || []

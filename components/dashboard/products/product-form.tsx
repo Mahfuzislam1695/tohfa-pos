@@ -304,15 +304,11 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
     (data: any) => {
       setIsSubmitting(false)
 
-      console.log("Create product response:", data)
-
       if (data?.statusCode >= 200 && data?.statusCode < 300) {
         // Get barcode from backend response
         const barcode = data.data?.barcode
         const productName = data.data?.name
         const productSku = data.data?.sku
-
-        console.log("Backend generated barcode:", barcode)
 
         // Reset form
         reset()
@@ -363,7 +359,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
 
   useEffect(() => {
     if (editItem) {
-      console.log("Setting edit item data:", editItem)
 
       const fields = [
         'sku', 'name', 'description', 'location', 'notes'
@@ -422,7 +417,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
   }, [editItem, setValue, reset])
 
   const onSubmit = async (data: ProductFormData) => {
-    console.log("Form submitted with data:", data)
 
     const isValid = await trigger()
     if (!isValid) {
@@ -448,8 +442,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
       location: data.location || undefined,
       notes: data.notes || undefined,
     }
-
-    console.log("Submitting product data:", dataToSubmit)
 
     if (editItem?.productID) {
       if (editItem.barcode) {

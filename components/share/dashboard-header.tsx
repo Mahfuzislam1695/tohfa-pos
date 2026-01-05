@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { logout } from "@/services/auth.service"
 
 export function DashboardHeader() {
   return (
@@ -47,7 +48,7 @@ export function DashboardHeader() {
                 <span>{"Settings"}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">{"Sign out"}</DropdownMenuItem>
+              {/* <DropdownMenuItem className="text-destructive" onClick={() => logout()}>{"Sign out"}</DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
