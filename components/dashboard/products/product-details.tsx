@@ -18,7 +18,7 @@ export function ProductDetails({ productID }: ProductDetailsProps) {
 
     const { data: product, refetch, isLoading, error } = useGet<any>(
         `/products/${productID}/details`,
-        ["productDetails"]
+        ["productDetails", productID]
     )
 
     if (isLoading) return <div>Loading...</div>

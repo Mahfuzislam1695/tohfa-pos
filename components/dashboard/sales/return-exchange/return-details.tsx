@@ -27,7 +27,7 @@ export function ReturnDetails({ returnId }: ReturnDetailsProps) {
 
   const { data: returnData, refetch, isLoading, error } = useGet<any>(
     `/returns/${returnId}`,
-    ["returnDetails"]
+    ["returnDetails", returnId.toString()]
   )
 
   const { mutate: approveReturn, isPending: isApproving } = usePatch(
