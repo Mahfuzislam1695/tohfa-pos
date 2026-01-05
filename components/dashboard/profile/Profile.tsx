@@ -8,105 +8,203 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { userStorage, type User } from "@/lib/localStorage"
 import { Loader2, UserIcon, Lock, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useGet } from "@/hooks/useGet"
+import { usePatch } from "@/hooks/usePatch"
+import { usePost } from "@/hooks/usePost"
+import { toast } from "react-toastify"
+import { useQueryClient } from "@tanstack/react-query"
+
+// Form validation schemas
+const profileSchema = z.object({
+    name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+    email: z.string().email("Invalid email address").min(1, "Email is required"),
+    phone: z.string().min(10, "Phone number must be at least 10 characters").max(30, "Phone number must be at most 30 characters"),
+})
+
+const passwordSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters").max(255, "Password must be at most 255 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+})
+
+type ProfileFormData = z.infer<typeof profileSchema>
+type PasswordFormData = z.infer<typeof passwordSchema>
 
 export default function Profile() {
-    const [loading, setLoading] = useState(false)
-    const [user, setUser] = useState<User | null>(null)
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+    const [originalData, setOriginalData] = useState<ProfileFormData | null>(null)
+    const queryClient = useQueryClient()
 
-    const [profileForm, setProfileForm] = useState({
-        name: "",
-        email: "",
-        phone: "",
+    // Get user profile
+    const { data: userData, isLoading: isLoadingProfile, refetch: refetchProfile } = useGet<any>(
+        "/users/profile",
+        ["userProfile"],
+        {
+            enabled: true,
+        }
+    )
+
+    console.log("userdata", userData);
+
+    // Profile form
+    const {
+        register: registerProfile,
+        handleSubmit: handleSubmitProfile,
+        formState: { errors: profileErrors, isSubmitting: isProfileSubmitting },
+        reset: resetProfile,
+        watch: watchProfile,
+        control: controlProfile,
+        getValues: getProfileValues,
+    } = useForm<ProfileFormData>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            phone: "",
+        }
     })
 
-    const [passwordForm, setPasswordForm] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+    // Password form
+    const {
+        register: registerPassword,
+        handleSubmit: handleSubmitPassword,
+        formState: { errors: passwordErrors, isSubmitting: isPasswordSubmitting },
+        reset: resetPassword,
+        watch: watchPassword,
+    } = useForm<PasswordFormData>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+        }
     })
 
+    // Load user data into form when fetched
     useEffect(() => {
-        // Get current logged-in user (in production, you'd get this from auth context)
-        const users = userStorage.getAll()
-        const currentUser = users[0] // For demo, using first user
-        if (currentUser) {
-            setUser(currentUser)
-            setProfileForm({
-                name: currentUser.name,
-                email: currentUser.email,
-                phone: currentUser.phone,
-            })
+        if (userData) {
+            const user = userData
+            const initialData = {
+                name: user.name || "",
+                email: user.email || "",
+                phone: user.phone || "",
+            }
+            setOriginalData(initialData)
+            resetProfile(initialData)
         }
-    }, [])
+    }, [userData, resetProfile])
 
-    const handleProfileUpdate = (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setMessage(null)
-
-        try {
-            if (user) {
-                userStorage.update(user.id, {
-                    name: profileForm.name,
-                    email: profileForm.email,
-                    phone: profileForm.phone,
-                })
+    // Update profile mutation
+    const { mutate: updateProfile, isPending: isUpdatingProfile } = usePatch(
+        (userData?.userID) ? `/users/${userData.userID}` : "",
+        (data: any) => {
+            if (data?.statusCode >= 200 && data?.statusCode < 300) {
+                // toast.success("Profile updated successfully!")
                 setMessage({ type: "success", text: "Profile updated successfully!" })
+                // Update original data with new values
+                const currentValues = getProfileValues()
+                setOriginalData(currentValues)
+                refetchProfile()
+                queryClient.invalidateQueries({ queryKey: ["userProfile"] })
+            } else {
+                toast.error(data?.message || "Failed to update profile")
+                setMessage({ type: "error", text: data?.message || "Failed to update profile" })
             }
-        } catch (error) {
-            setMessage({ type: "error", text: "Failed to update profile" })
-        } finally {
-            setLoading(false)
+        },
+        (error: any) => {
+            toast.error(error?.message || "Failed to update profile")
+            setMessage({ type: "error", text: error?.message || "Failed to update profile" })
         }
+    )
+
+    // Change password mutation
+    const { mutate: changePassword, isPending: isChangingPassword } = usePost(
+        "/users/change-password",
+        (data: any) => {
+            if (data?.statusCode >= 200 && data?.statusCode < 300) {
+                // toast.success("Password changed successfully!")
+                setMessage({ type: "success", text: "Password changed successfully!" })
+                resetPassword()
+            } else {
+                toast.error(data?.message || "Failed to change password")
+                setMessage({ type: "error", text: data?.message || "Failed to change password" })
+            }
+        },
+        (error: any) => {
+            toast.error(error?.message || "Failed to change password")
+            setMessage({ type: "error", text: error?.message || "Failed to change password" })
+        }
+    )
+
+    const onProfileSubmit = (data: ProfileFormData) => {
+        if (!userData?.userID) {
+            toast.error("User ID not found")
+            return
+        }
+
+        if (!originalData) {
+            toast.error("Original data not loaded")
+            return
+        }
+
+        // Create update object with only changed fields
+        const updateData: any = {}
+
+        if (data.name !== originalData.name) {
+            updateData.name = data.name
+        }
+
+        if (data.email !== originalData.email) {
+            updateData.email = data.email
+        }
+
+        if (data.phone !== originalData.phone) {
+            updateData.phone = data.phone
+        }
+
+        // If nothing changed, show message and return
+        if (Object.keys(updateData).length === 0) {
+            toast.info("No changes detected")
+            setMessage({ type: "success", text: "No changes to update" })
+            return
+        }
+
+        console.log("Updating profile with:", updateData)
+        updateProfile(updateData)
     }
 
-    const handlePasswordChange = (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setMessage(null)
-
-        try {
-            if (!user) {
-                setMessage({ type: "error", text: "User not found" })
-                return
-            }
-
-            if (passwordForm.currentPassword !== user.password) {
-                setMessage({ type: "error", text: "Current password is incorrect" })
-                return
-            }
-
-            if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-                setMessage({ type: "error", text: "New passwords do not match" })
-                return
-            }
-
-            if (passwordForm.newPassword.length < 6) {
-                setMessage({ type: "error", text: "Password must be at least 6 characters" })
-                return
-            }
-
-            userStorage.update(user.id, {
-                password: passwordForm.newPassword,
-            })
-
-            setPasswordForm({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            })
-
-            setMessage({ type: "success", text: "Password changed successfully!" })
-        } catch (error) {
-            setMessage({ type: "error", text: "Failed to change password" })
-        } finally {
-            setLoading(false)
+    const onPasswordSubmit = (data: PasswordFormData) => {
+        const passwordData = {
+            currentPassword: data.currentPassword,
+            newPassword: data.newPassword,
         }
+
+        console.log("Changing password with:", passwordData)
+        changePassword(passwordData)
     }
+
+    if (isLoadingProfile) {
+        return (
+            <div className="p-6 space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold">Profile Settings</h1>
+                    <p className="text-muted-foreground mt-1">Loading profile...</p>
+                </div>
+                <div className="flex items-center justify-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="p-6 space-y-6">
             <div>
@@ -144,45 +242,79 @@ export default function Profile() {
                             <CardDescription>Update your personal information</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={handleProfileUpdate} className="space-y-4">
+                            <form onSubmit={handleSubmitProfile(onProfileSubmit)} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name</Label>
+                                    <Label htmlFor="name">Full Name *</Label>
                                     <Input
                                         id="name"
-                                        value={profileForm.name}
-                                        onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
-                                        required
+                                        {...registerProfile("name")}
+                                        placeholder="Enter your full name"
+                                        disabled={isUpdatingProfile}
+                                        className={profileErrors.name ? "border-red-500" : ""}
                                     />
+                                    {profileErrors.name && (
+                                        <p className="text-sm text-red-500 mt-1">{profileErrors.name.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email Address</Label>
+                                    <Label htmlFor="email">Email Address *</Label>
                                     <Input
                                         id="email"
                                         type="email"
-                                        value={profileForm.email}
-                                        onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))}
-                                        required
+                                        {...registerProfile("email")}
+                                        placeholder="Enter your email address"
+                                        disabled={isUpdatingProfile}
+                                        className={profileErrors.email ? "border-red-500" : ""}
                                     />
+                                    {profileErrors.email && (
+                                        <p className="text-sm text-red-500 mt-1">{profileErrors.email.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone Number</Label>
+                                    <Label htmlFor="phone">Phone Number *</Label>
                                     <Input
                                         id="phone"
-                                        value={profileForm.phone}
-                                        onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
-                                        required
+                                        {...registerProfile("phone")}
+                                        placeholder="Enter your phone number"
+                                        disabled={isUpdatingProfile}
+                                        className={profileErrors.phone ? "border-red-500" : ""}
                                     />
+                                    {profileErrors.phone && (
+                                        <p className="text-sm text-red-500 mt-1">{profileErrors.phone.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
                                     <Label>Role</Label>
-                                    <Input value={user?.role || ""} disabled />
+                                    <Input
+                                        value={userData?.role || ""}
+                                        disabled
+                                    />
                                 </div>
+
                                 <div className="space-y-2">
                                     <Label>Status</Label>
-                                    <Input value={user?.status || ""} disabled />
+                                    <Input
+                                        value={userData?.status || ""}
+                                        disabled
+                                    />
                                 </div>
-                                <Button type="submit" disabled={loading}>
-                                    {loading ? (
+
+                                <div className="space-y-2">
+                                    <Label>Member Since</Label>
+                                    <Input
+                                        value={userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : ""}
+                                        disabled
+                                    />
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    disabled={isUpdatingProfile}
+                                >
+                                    {isUpdatingProfile ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                             Saving...
@@ -203,39 +335,60 @@ export default function Profile() {
                             <CardDescription>Update your password to keep your account secure</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={handlePasswordChange} className="space-y-4">
+                            <form onSubmit={handleSubmitPassword(onPasswordSubmit)} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="currentPassword">Current Password</Label>
+                                    <Label htmlFor="currentPassword">Current Password *</Label>
                                     <Input
                                         id="currentPassword"
                                         type="password"
-                                        value={passwordForm.currentPassword}
-                                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                                        required
+                                        {...registerPassword("currentPassword")}
+                                        placeholder="Enter your current password"
+                                        disabled={isChangingPassword}
+                                        className={passwordErrors.currentPassword ? "border-red-500" : ""}
                                     />
+                                    {passwordErrors.currentPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{passwordErrors.currentPassword.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label htmlFor="newPassword">New Password</Label>
+                                    <Label htmlFor="newPassword">New Password *</Label>
                                     <Input
                                         id="newPassword"
                                         type="password"
-                                        value={passwordForm.newPassword}
-                                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
-                                        required
+                                        {...registerPassword("newPassword")}
+                                        placeholder="Enter new password"
+                                        disabled={isChangingPassword}
+                                        className={passwordErrors.newPassword ? "border-red-500" : ""}
                                     />
+                                    {passwordErrors.newPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{passwordErrors.newPassword.message}</p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Password must be at least 8 characters long
+                                    </p>
                                 </div>
+
                                 <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                    <Label htmlFor="confirmPassword">Confirm New Password *</Label>
                                     <Input
                                         id="confirmPassword"
                                         type="password"
-                                        value={passwordForm.confirmPassword}
-                                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                                        required
+                                        {...registerPassword("confirmPassword")}
+                                        placeholder="Confirm new password"
+                                        disabled={isChangingPassword}
+                                        className={passwordErrors.confirmPassword ? "border-red-500" : ""}
                                     />
+                                    {passwordErrors.confirmPassword && (
+                                        <p className="text-sm text-red-500 mt-1">{passwordErrors.confirmPassword.message}</p>
+                                    )}
                                 </div>
-                                <Button type="submit" disabled={loading}>
-                                    {loading ? (
+
+                                <Button
+                                    type="submit"
+                                    disabled={isChangingPassword}
+                                >
+                                    {isChangingPassword ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                             Changing Password...
