@@ -5,44 +5,53 @@ export interface UnitDefinition {
   shortName: string
   category: "weight" | "volume" | "count" | "length" | "other"
   baseUnit?: string
-  conversionFactor?: number // How many of this unit equals 1 base unit
+  conversionFactor?: number
+  allowsDecimal?: boolean
 }
 
 export const PREDEFINED_UNITS: UnitDefinition[] = [
   // Most Used Units (Must-Have)
-  { name: "Piece", shortName: "pcs", category: "count" },
-  { name: "Kilogram", shortName: "kg", category: "weight" },
-  { name: "Gram", shortName: "g", category: "weight", baseUnit: "kg", conversionFactor: 1000 },
-  { name: "Liter", shortName: "l", category: "volume" },
-  { name: "Milliliter", shortName: "ml", category: "volume", baseUnit: "l", conversionFactor: 1000 },
-  { name: "Box", shortName: "box", category: "count" },
-  { name: "Pack", shortName: "pack", category: "count" },
-  { name: "Dozen", shortName: "dozen", category: "count" },
-  { name: "Set", shortName: "set", category: "count" },
+  { name: "Piece", shortName: "pcs", category: "count", allowsDecimal: false },
+  { name: "Kilogram", shortName: "kg", category: "weight", allowsDecimal: true },
+  { name: "Gram", shortName: "g", category: "weight", baseUnit: "kg", conversionFactor: 1000, allowsDecimal: true },
+  { name: "Liter", shortName: "l", category: "volume", allowsDecimal: true },
+  { name: "Milliliter", shortName: "ml", category: "volume", baseUnit: "l", conversionFactor: 1000, allowsDecimal: true },
+  { name: "Box", shortName: "box", category: "count", allowsDecimal: false },
+  { name: "Pack", shortName: "pack", category: "count", allowsDecimal: false },
+  { name: "Dozen", shortName: "dozen", category: "count", allowsDecimal: false },
+  { name: "Set", shortName: "set", category: "count", allowsDecimal: false },
 
   // Retail & Grocery
-  { name: "Bag", shortName: "bag", category: "count" },
-  { name: "Bottle", shortName: "bottle", category: "count" },
-  { name: "Can", shortName: "can", category: "count" },
-  { name: "Jar", shortName: "jar", category: "count" },
-  { name: "Sachet", shortName: "sachet", category: "count" },
-  { name: "Bundle", shortName: "bundle", category: "count" },
+  { name: "Bag", shortName: "bag", category: "count", allowsDecimal: false },
+  { name: "Bottle", shortName: "bottle", category: "count", allowsDecimal: false },
+  { name: "Can", shortName: "can", category: "count", allowsDecimal: false },
+  { name: "Jar", shortName: "jar", category: "count", allowsDecimal: false },
+  { name: "Sachet", shortName: "sachet", category: "count", allowsDecimal: false },
+  { name: "Bundle", shortName: "bundle", category: "count", allowsDecimal: false },
 
   // Electronics / Hardware
-  { name: "Unit", shortName: "unit", category: "count" },
-  { name: "Pair", shortName: "pair", category: "count" },
-  { name: "Roll", shortName: "roll", category: "count" },
-  { name: "Meter", shortName: "m", category: "length" },
-  { name: "Feet", shortName: "ft", category: "length" },
-  { name: "Inch", shortName: "inch", category: "length" },
-  { name: "Sheet", shortName: "sheet", category: "count" },
+  { name: "Unit", shortName: "unit", category: "count", allowsDecimal: false },
+  { name: "Pair", shortName: "pair", category: "count", allowsDecimal: false },
+  { name: "Roll", shortName: "roll", category: "count", allowsDecimal: false },
+  { name: "Meter", shortName: "m", category: "length", allowsDecimal: true },
+  { name: "Feet", shortName: "ft", category: "length", allowsDecimal: true },
+  { name: "Inch", shortName: "inch", category: "length", allowsDecimal: true },
+  { name: "Sheet", shortName: "sheet", category: "count", allowsDecimal: false },
 
   // Wholesale / Bulk
-  { name: "Carton", shortName: "carton", category: "count" },
-  { name: "Case", shortName: "case", category: "count" },
-  { name: "Packet", shortName: "packet", category: "count" },
-  { name: "Lot", shortName: "lot", category: "count" },
+  { name: "Carton", shortName: "carton", category: "count", allowsDecimal: false },
+  { name: "Case", shortName: "case", category: "count", allowsDecimal: false },
+  { name: "Packet", shortName: "packet", category: "count", allowsDecimal: false },
+  { name: "Lot", shortName: "lot", category: "count", allowsDecimal: false },
 ]
+
+// Helper function to check if a unit allows decimal quantities
+export const unitAllowsDecimal = (unitShortName: string): boolean => {
+  const unit = getUnitByShortName(unitShortName)
+  // Default to false if not specified
+  return unit?.allowsDecimal || false
+}
+
 
 export function getUnitByShortName(shortName: string): UnitDefinition | undefined {
   return PREDEFINED_UNITS.find((u) => u.shortName === shortName)

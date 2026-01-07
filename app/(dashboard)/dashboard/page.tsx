@@ -1,4 +1,5 @@
-import { Loader } from "lucide-react";
+// import { Loader } from "lucide-react";
+import { LoadingCenter } from "@/components/share/loading-center";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
 };
 export default function DashboardPage() {
     const DynamicDashboard = dynamic(() => import("@/components/dashboard/dashboard/Dashboard"), {
-        loading: () => <div className=""><Loader className="animate-spin" /></div>,
+        loading: () => <LoadingCenter />
     });
     return <DynamicDashboard />;
 }

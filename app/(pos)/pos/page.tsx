@@ -1,3 +1,4 @@
+import { LoadingCenter } from "@/components/share/loading-center";
 import { Loader } from "lucide-react";
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
 };
 export default function POSPage() {
     const DynamicPOS = dynamic(() => import("@/components/pos/pos/Pos"), {
-        loading: () => <Loader className="animate-spin" />,
+        loading: () => <LoadingCenter />,
     });
     return <DynamicPOS />;
 }
