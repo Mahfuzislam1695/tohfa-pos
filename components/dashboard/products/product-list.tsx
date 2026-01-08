@@ -294,9 +294,25 @@ export function ProductList({ onEdit, onView, refresh }: ProductListProps) {
                           <TableCell>
                             {product?.brandName || "-"}
                           </TableCell>
-                          <TableCell className="text-right">
+                          {/* <TableCell className="text-right">
                             <div className="flex flex-col items-end">
                               <span className="font-medium">{product.stockQuantity}</span>
+                              <span className="text-xs text-muted-foreground">
+                                Low: {product.lowStockThreshold}
+                              </span>
+                            </div>
+                          </TableCell> */}
+                          <TableCell className="text-right">
+                            <div className="flex flex-col items-end">
+                              <span
+                                className={`font-medium ${product.stockQuantity <= product.lowStockThreshold
+                                    ? "text-red-600"
+                                    : "text-foreground"
+                                  }`}
+                              >
+                                {product.stockQuantity}
+                              </span>
+
                               <span className="text-xs text-muted-foreground">
                                 Low: {product.lowStockThreshold}
                               </span>
