@@ -24,7 +24,8 @@ import {
     User,
     Clock,
     CalendarClock,
-    FileText
+    FileText,
+    BarChart3
 } from "lucide-react"
 import { useDelete } from "@/hooks/useDelete"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -161,6 +162,7 @@ export function PurchaseList({ productId, onView, onEdit }: PurchaseListProps) {
             {/* Statistics Cards */}
             {meta?.statistics && (
                 <div className="grid gap-4 md:grid-cols-4">
+                    {/* Total Batches Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Batches</CardTitle>
@@ -174,19 +176,7 @@ export function PurchaseList({ productId, onView, onEdit }: PurchaseListProps) {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
-                            <Box className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{meta.statistics.totalQuantity.toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Avg: {meta.statistics.averageBatchQuantity.toLocaleString()}
-                            </p>
-                        </CardContent>
-                    </Card>
-
+                    {/* Total Value Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Value</CardTitle>
@@ -208,18 +198,143 @@ export function PurchaseList({ productId, onView, onEdit }: PurchaseListProps) {
                         </CardContent>
                     </Card>
 
+                    {/* Stock Status Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Stock Status</CardTitle>
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{meta.statistics.batchesInStock}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {meta.statistics.batchesOutOfStock} out of stock
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Utilization Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Utilization</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{meta.statistics.utilizationPercentage}%</div>
+                            <p className="text-xs text-muted-foreground">
+                                {meta.statistics.totalSoldQuantity.toLocaleString()} units sold/removed
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Quantity Overview Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Quantity Overview</CardTitle>
+                            <Box className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Original:</span>
+                                    <span className="font-medium text-lg">
+                                        {meta.statistics.totalOriginalQuantity.toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Remaining:</span>
+                                    <span className="font-medium text-lg text-blue-600">
+                                        {meta.statistics.totalRemainingQuantity.toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Sold/Removed:</span>
+                                    <span className="font-medium text-lg text-green-600">
+                                        {meta.statistics.totalSoldQuantity.toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Expiry Alerts Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Expiry Alerts</CardTitle>
                             <AlertTriangle className="h-4 w-4 text-destructive" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-destructive">
-                                {meta.statistics.expiringSoonCount + meta.statistics.expiredCount}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">Expiring Soon:</span>
+                                    <Badge variant="warning" className="text-xs">
+                                        {meta.statistics.expiringSoonCount}
+                                    </Badge>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">Expired:</span>
+                                    <Badge variant="destructive" className="text-xs">
+                                        {meta.statistics.expiredCount}
+                                    </Badge>
+                                </div>
+                                <div className="pt-2 border-t">
+                                    <p className="text-xs text-muted-foreground">
+                                        Total alerts: {meta.statistics.expiringSoonCount + meta.statistics.expiredCount}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Additional Statistics Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Avg Batch Qty:</span>
+                                    <span className="font-medium">
+                                        {meta.statistics.averageBatchQuantity.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Avg Utilization:</span>
+                                    <span className="font-medium">
+                                        {meta.statistics.averageBatchUtilization.toFixed(2)}%
+                                    </span>
+                                </div>
+                                <div className="pt-2 border-t">
+                                    <p className="text-xs text-muted-foreground">
+                                        {meta.statistics.batchesWithoutExpiry} batches without expiry
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Efficiency Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Efficiency</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {((meta.statistics.totalSoldQuantity / meta.statistics.totalOriginalQuantity) * 100).toFixed(1)}%
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                {meta.statistics.expiredCount} expired, {meta.statistics.expiringSoonCount} expiring soon
+                                Overall stock movement efficiency
                             </p>
+                            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-green-600 h-2 rounded-full"
+                                    style={{
+                                        width: `${Math.min(100, (meta.statistics.totalSoldQuantity / meta.statistics.totalOriginalQuantity) * 100)}%`
+                                    }}
+                                ></div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -298,7 +413,9 @@ export function PurchaseList({ productId, onView, onEdit }: PurchaseListProps) {
                                         <TableRow>
                                             <TableHead className="w-16 text-center">SL</TableHead>
                                             {!productId && <TableHead>Product</TableHead>}
-                                            <TableHead className="text-right">Quantity</TableHead>
+                                            <TableHead className="text-right">Total (Received)</TableHead>
+                                            <TableHead className="text-right">Remaining (Available)</TableHead>
+                                            <TableHead className="text-right">Sold/Removed</TableHead>
                                             <TableHead className="text-right">Unit Cost</TableHead>
                                             <TableHead className="text-right">Batch Value</TableHead>
                                             <TableHead>Expiry Date</TableHead>
@@ -348,10 +465,24 @@ export function PurchaseList({ productId, onView, onEdit }: PurchaseListProps) {
 
                                                         <TableCell className="text-right">
                                                             <div className="flex flex-col items-end">
-                                                                <span className="font-medium">{purchase.quantity.toLocaleString()}</span>
+                                                                <span className="font-medium">{purchase?.totalQuantity?.toLocaleString()}</span>
+                                                                <span className="text-xs text-muted-foreground">Received</span>
                                                             </div>
                                                         </TableCell>
-
+                                                        <TableCell className="text-right">
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="font-medium">{purchase?.remainingQuantity?.toLocaleString()}</span>
+                                                                <span className="text-xs text-muted-foreground">Available</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="font-medium">
+                                                                    {(purchase.totalQuantity - purchase.remainingQuantity).toLocaleString()}
+                                                                </span>
+                                                                <span className="text-xs text-muted-foreground">Sold/Removed</span>
+                                                            </div>
+                                                        </TableCell>
                                                         <TableCell className="text-right">
                                                             <div className="flex flex-col items-end">
                                                                 <span className="font-medium">

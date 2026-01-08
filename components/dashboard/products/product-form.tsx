@@ -784,21 +784,22 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="purchasePrice">Purchase Price *</Label>
-                <Input
-                  id="purchasePrice"
-                  type="number"
-                  step="0.01"
-                  {...register("purchasePrice")}
-                  placeholder="10.50"
-                  disabled={isLoading}
-                  className={errors.purchasePrice ? "border-red-500" : ""}
-                />
-                {errors.purchasePrice && (
-                  <p className="text-sm text-red-500 mt-1">{errors.purchasePrice.message}</p>
-                )}
-              </div>
+              {!editItem && (
+                <div className="space-y-2">
+                  <Label htmlFor="purchasePrice">Purchase Price *</Label>
+                  <Input
+                    id="purchasePrice"
+                    type="number"
+                    step="0.01"
+                    {...register("purchasePrice")}
+                    placeholder="10.50"
+                    disabled={isLoading}
+                    className={errors.purchasePrice ? "border-red-500" : ""}
+                  />
+                  {errors.purchasePrice && (
+                    <p className="text-sm text-red-500 mt-1">{errors.purchasePrice.message}</p>
+                  )}
+                </div>)}
 
               <div className="space-y-2">
                 <Label htmlFor="sellingPrice">Selling Price *</Label>
@@ -816,20 +817,21 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="stockQuantity">Stock Quantity *</Label>
-                <Input
-                  id="stockQuantity"
-                  type="number"
-                  {...register("stockQuantity")}
-                  placeholder="100"
-                  disabled={isLoading}
-                  className={errors.stockQuantity ? "border-red-500" : ""}
-                />
-                {errors.stockQuantity && (
-                  <p className="text-sm text-red-500 mt-1">{errors.stockQuantity.message}</p>
-                )}
-              </div>
+              {!editItem && (
+                <div className="space-y-2">
+                  <Label htmlFor="stockQuantity">Stock Quantity *</Label>
+                  <Input
+                    id="stockQuantity"
+                    type="number"
+                    {...register("stockQuantity")}
+                    placeholder="100"
+                    disabled={isLoading}
+                    className={errors.stockQuantity ? "border-red-500" : ""}
+                  />
+                  {errors.stockQuantity && (
+                    <p className="text-sm text-red-500 mt-1">{errors.stockQuantity.message}</p>
+                  )}
+                </div>)}
 
               <div className="space-y-2">
                 <Label htmlFor="lowStockThreshold">Low Stock Threshold *</Label>

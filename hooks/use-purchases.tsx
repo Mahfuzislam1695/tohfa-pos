@@ -5,7 +5,8 @@ import { useGetAll } from "./useGet"
 
 export interface Purchase {
     batchID: number
-    quantity: number
+    totalQuantity: number
+    remainingQuantity: number
     unitCost: number
     expiryDate?: string
     receivedAt: string
@@ -26,14 +27,20 @@ export interface Purchase {
 
 export interface PurchaseStatistics {
     totalBatches: number
-    totalQuantity: number
+    batchesInStock: number
+    batchesOutOfStock: number
+    batchesWithExpiry: number
+    batchesWithoutExpiry: number
+    totalOriginalQuantity: number
+    totalRemainingQuantity: number
+    totalSoldQuantity: number
+    utilizationPercentage: number
     totalValue: number
     expiringSoonCount: number
     expiredCount: number
-    batchesWithExpiry: number
-    batchesWithoutExpiry: number
     averageBatchValue: number
     averageBatchQuantity: number
+    averageBatchUtilization: number
 }
 
 interface MetaData {
@@ -96,7 +103,8 @@ export const usePurchases = (productId?: number): UsePurchasesReturn => {
     // Transform API data
     const purchases: Purchase[] = purchasesData.map((purchase: any) => ({
         batchID: purchase.batchID,
-        quantity: purchase.quantity,
+        totalQuantity: purchase.totalQuantity,
+        remainingQuantity: purchase.remainingQuantity,
         unitCost: purchase.unitCost,
         expiryDate: purchase.expiryDate,
         receivedAt: purchase.receivedAt,

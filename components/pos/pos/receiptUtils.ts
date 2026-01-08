@@ -76,8 +76,8 @@ export function printReceipt(sale: SaleData) {
             </head>
             <body>
                 <h2>AT-TOHFA</h2>
-                <div class="center">Gift Shop & Stationery</div>
-                <div class="center">Kamarpara, Road-1, House-1</div>
+                <div class="center">Gift & Islamic Item</div>
+                <div class="center">Kamarpara</div>
                 <div class="center">Phone: 01752372837</div>
                 <div class="line"></div>
                 <div class="row"><span>Invoice:</span><span>${sale.invoiceNumber}</span></div>
@@ -87,13 +87,15 @@ export function printReceipt(sale: SaleData) {
                 <div class="line"></div>
                 <table class="receipt-table">
                     <colgroup>
-                        <col style="width: 46%">
-                        <col style="width: 14%">
+                        <col style="width: 6%">
+                        <col style="width: 42%">
+                        <col style="width: 12%">
                         <col style="width: 20%">
                         <col style="width: 20%">
                     </colgroup>
                     <thead>
                         <tr>
+                            <th class="center">SL</th>
                             <th class="left">Item</th>
                             <th class="right">Qty</th>
                             <th class="right">Price</th>
@@ -103,8 +105,9 @@ export function printReceipt(sale: SaleData) {
                     <tbody>
                         ${cartItems
             .map(
-                (item: CartItem) => `
+                (item: CartItem, index: number) => `
                                 <tr>
+                                    <td class="center">${index + 1}</td>
                                     <td class="item">${item.productName}</td>
                                     <td class="right">${item.quantity}</td>
                                     <td class="right">${item.unitPrice.toFixed(2)}</td>
@@ -117,7 +120,7 @@ export function printReceipt(sale: SaleData) {
                 </table>
                 <div class="line"></div>
                 <div class="row"><span>Subtotal:</span><span>৳${sale.subtotal.toFixed(2)}</span></div>
-                ${sale.discount > 0 ? `<div class="row"><span>Discount:</span><span>-৳${sale.discount.toFixed(2)}</span></div>` : ""}
+                ${sale.discount > 0 ? `<div class="row"><span>Discount (${((sale.discount / sale.subtotal) * 100).toFixed(0)}%):</span><span>-৳${sale.discount.toFixed(2)}</span></div>` : ""}
                 ${sale.tax > 0 ? `<div class="row"><span>Tax:</span><span>৳${sale.tax.toFixed(2)}</span></div>` : ""}
                 <div class="line"></div>
                 <div class="row bold"><span>TOTAL:</span><span>৳${sale.total.toFixed(2)}</span></div>

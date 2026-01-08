@@ -53,6 +53,8 @@ export default function Pos() {
         (data: any) => {
             if (data?.statusCode >= 200 && data?.statusCode < 300) {
                 printReceipt(data.data)
+                console.log("data", data.data);
+
 
                 // Reset form
                 setCart([])
