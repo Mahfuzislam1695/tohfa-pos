@@ -402,7 +402,7 @@ export default function Reports() {
 //                                                     </span>
 //                                                 </div>
 //                                                 <div className="text-xs text-muted-foreground pt-2 border-t">
-//                                                     Every ₹100 revenue → ₹{salesReportData.summary.profitMargin.toFixed(0)} profit
+//                                                     Every ৳100 revenue → ৳{salesReportData.summary.profitMargin.toFixed(0)} profit
 //                                                 </div>
 //                                             </div>
 //                                         </CardContent>

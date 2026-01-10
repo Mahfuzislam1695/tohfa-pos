@@ -30,6 +30,7 @@ const navigation = [
   { name: "Purchases", href: "/purchases", icon: FileText },
   { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Product Removals", href: "/product-removal", icon: AlertTriangle },
+  { name: "Dues", href: "/dues", icon: AlertTriangle },
   // { name: "Returns", href: "/returns", icon:  },
   { name: "Users", href: "/users", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },

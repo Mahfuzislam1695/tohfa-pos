@@ -58,7 +58,7 @@ export function SalesReportSummary({ data }: SalesReportSummaryProps) {
                                 </span>
                             </div>
                             <div className="text-xs text-muted-foreground pt-2 border-t">
-                                Every ₹100 revenue → ₹{data.summary.profitMargin.toFixed(0)} profit
+                                Every ৳100 revenue → ৳{data.summary.profitMargin.toFixed(0)} profit
                             </div>
                         </div>
                     </CardContent>
