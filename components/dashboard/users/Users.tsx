@@ -73,14 +73,14 @@ export default function UsersPage() {
             )}
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="list" className="mt-6">
           <UserList
             key={refreshKey}
             onEdit={handleEdit}
           />
         </TabsContent>
-        
+
         <TabsContent value="add" className="mt-6">
           <UserForm
             editItem={editingUser}
