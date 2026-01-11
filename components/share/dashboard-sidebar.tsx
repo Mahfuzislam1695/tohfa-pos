@@ -16,6 +16,7 @@ import {
   User,
   Wallet,
   AlertTriangle,
+  ClockAlert,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -23,15 +24,23 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 
 const navigation = [
+  // Core
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "POS", href: "/pos", icon: ShoppingCart },
+
+  // Sales Flow
   { name: "Sales", href: "/sales", icon: ShoppingBag },
+  { name: "Dues", href: "/dues", icon: ClockAlert },
+
+  // Inventory
   { name: "Products", href: "/products", icon: Package },
   { name: "Purchases", href: "/purchases", icon: FileText },
-  { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Product Removals", href: "/product-removal", icon: AlertTriangle },
-  { name: "Dues", href: "/dues", icon: AlertTriangle },
-  // { name: "Returns", href: "/returns", icon:  },
+
+  // Finance
+  { name: "Expenses", href: "/expenses", icon: Wallet },
+
+  // Admin & Insights
   { name: "Users", href: "/users", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
 ]

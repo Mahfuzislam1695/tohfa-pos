@@ -514,20 +514,6 @@ export function PaymentList({ customerId, onView, onAddPayment }: PaymentListPro
                                                                 >
                                                                     <Eye className="h-4 w-4" />
                                                                 </Button>
-                                                                {payment.status !== 'VOIDED' && onAddPayment && payment.sell && (
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="ghost"
-                                                                        onClick={() => handleAddForSale(payment)}
-                                                                        disabled={isDeleting}
-                                                                        className="h-8 w-8 p-0"
-                                                                        title="Add Another Payment"
-                                                                    >
-                                                                        <DollarSign className="h-4 w-4" />
-                                                                    </Button>
-                                                                )}
-
-
                                                             </div>
                                                         </TableCell>
                                                     </TableRow>
