@@ -29,10 +29,22 @@ export interface DashboardStats {
 export interface TopProduct {
     productID: number;
     productName: string;
-    sku: string;
-    quantitySold: number;
+    quantity: number;
     revenue: number;
-    profit: number;
+    originalQuantity?: number;
+    originalRevenue?: number;
+    returnsAmount?: number;
+    returnRate?: number;
+}
+
+export interface CategoryBreakdownItem {
+    categoryID: number;
+    categoryName: string;
+    revenue: number;
+    percentage: number;
+    netRevenue?: number;
+    returns?: number;
+    returnRate?: number;
 }
 
 export interface RecentSale {
@@ -86,6 +98,12 @@ export interface SalesReportSummary {
     itemsSold: number;
     averageOrderValue: number;
     profitMargin: number;
+    // NEW: Returns information
+    grossSales: number;
+    totalReturnsAmount: number;
+    totalReturnsItems: number;
+    returnRate: number;
+    netSales: number;
 }
 
 export interface SalesReportItem {
@@ -101,29 +119,24 @@ export interface SalesReportItem {
     paymentStatus: string;
     itemsCount: number;
     createdAt: string;
+    originalTotal: number;
+    returnsAmount: number;
+    returnsItems: number;
+    netItems: number;
 }
 
 export interface SalesReportData {
     summary: SalesReportSummary;
     sales: SalesReportItem[];
-    topProducts: Array<{
-        productID: number;
-        productName: string;
-        quantity: number;
-        revenue: number;
-    }>;
-    categoryBreakdown: Array<{
-        categoryID: number;
-        categoryName: string;
-        revenue: number;
-        percentage: number;
-    }>;
+    topProducts: TopProduct[];
+    categoryBreakdown: CategoryBreakdownItem[];
     paymentMethodBreakdown: Array<{
         method: string;
         count: number;
         amount: number;
         percentage: number;
     }>;
+    returnsBreakdown: ReturnsBreakdown;
 }
 
 export interface InventoryReportSummary {
@@ -177,19 +190,28 @@ export interface ProfitLossSummary {
     netProfit: number;
     netProfitMargin: number;
     totalRemovalsLoss: number;
-    totalReturnsLoss: number;
+    totalReturnsAmount: number; // Changed from totalReturnsLoss
+    totalReturnsCount: number; // Added
     operatingProfit: number;
+    grossSales: number; // Added
+    netSales: number; // Added
+    returnRate: number; // Added
+}
+
+export interface ProfitLossCategory {
+    categoryName: string;
+    revenue: number;
+    cost: number;
+    profit: number;
+    margin: number;
+    returns: number; // Added
+    returnRate: number; // Added
 }
 
 export interface ProfitLossData {
     summary: ProfitLossSummary;
-    categoryBreakdown: Array<{
-        categoryName: string;
-        revenue: number;
-        cost: number;
-        profit: number;
-        margin: number;
-    }>;
+    categoryBreakdown: ProfitLossCategory[];
+
     monthlyTrend: Array<{
         month: string;
         revenue: number;
@@ -209,7 +231,54 @@ export interface ProfitLossData {
         amount: number;
         percentage: number;
     }>;
+    returnsBreakdown: { // Added new property
+        summary: {
+            totalAmount: number;
+            totalCount: number;
+            averageReturnAmount: number;
+        };
+        breakdown: Array<{
+            reason: string;
+            amount: number;
+            count: number;
+            percentage: number;
+        }>;
+    };
 }
+
+export interface ReturnsBreakdown {
+    summary: {
+        totalReturns: number;
+        totalRefundAmount: number;
+        averageRefundAmount: number;
+    };
+    recentReturns: Array<{
+        returnID: number;
+        returnNumber: string;
+        invoiceNumber?: string;
+        customerName?: string;
+        totalAmount: number;
+        refundAmount: number;
+        returnReason: string;
+        returnType: string;
+        createdAt: string;
+    }>;
+    returnTrend: Array<{
+        date: string;
+        returnCount: number;
+        totalAmount: number;
+    }>;
+    topReturnedProducts: Array<{
+        productID: number;
+        productName: string;
+        sku: string;
+        returnCount: number;
+        totalQuantity: number;
+        totalAmount: number;
+        averageReturnAmount: number;
+    }>;
+}
+
 
 export interface ReportFilters {
     period?: ReportPeriod;
