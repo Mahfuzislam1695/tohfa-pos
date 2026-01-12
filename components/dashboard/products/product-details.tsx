@@ -326,7 +326,8 @@ export function ProductDetails({ productID }: ProductDetailsProps) {
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Batch ID</TableHead>
-                                            <TableHead>Quantity</TableHead>
+                                            <TableHead>Total Qty</TableHead>
+                                            <TableHead>Remaining Qty</TableHead>
                                             <TableHead>Unit Cost</TableHead>
                                             <TableHead>Total Value</TableHead>
                                             <TableHead>Received</TableHead>
@@ -337,7 +338,8 @@ export function ProductDetails({ productID }: ProductDetailsProps) {
                                         {product.inventoryBatchesSummary.recentBatches.map((batch: any) => (
                                             <TableRow key={batch.batchID}>
                                                 <TableCell className="font-medium">#{batch.batchID}</TableCell>
-                                                <TableCell>{batch.quantity}</TableCell>
+                                                <TableCell>{batch.totalQuantity}</TableCell>
+                                                <TableCell>{batch.remainingQuantity}</TableCell>
                                                 <TableCell>{formatCurrency(batch.unitCost)}</TableCell>
                                                 <TableCell>{formatCurrency(batch.totalValue)}</TableCell>
                                                 <TableCell>{formatDateShort(batch.receivedAt)}</TableCell>

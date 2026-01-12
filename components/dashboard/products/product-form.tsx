@@ -633,127 +633,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                     <p className="text-sm text-red-500 mt-1">{errors.sku.message}</p>
                   )}
 
-                  {/* SKU Generation Settings */}
-                  {!editItem && skuFormat === 'auto' && (
-                    <div className="mt-4 p-3 bg-muted rounded-md space-y-3">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold">Category Code</p>
-                          <div className="flex items-center gap-1">
-                            <Badge variant="outline" className="font-mono">
-                              {selectedCategory ? selectedCategory.categoryID.toString().padStart(2, '0') : '01'}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {selectedCategory?.name || 'General'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold">Brand Code</p>
-                          <div className="flex items-center gap-1">
-                            <Badge variant="outline" className="font-mono">
-                              {selectedBrand ? selectedBrand.brandID.toString().padStart(2, '0') : '00'}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {selectedBrand?.name || 'No brand'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold">Product Code from Name</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-mono">
-                            {formValues.name ?
-                              (() => {
-                                // Show how product code is generated
-                                const name = formValues.name
-                                const numbers = name.match(/\d+/g)
-                                const words = name.replace(/[^a-zA-Z\s]/g, '').split(' ').filter(w => w.length > 0)
-
-                                if (words.length >= 2) {
-                                  return words.slice(0, 3).map(w => w[0]).join('').toUpperCase().padEnd(3, 'X').substring(0, 3)
-                                } else if (words.length === 1) {
-                                  const code = words[0].substring(0, 3).toUpperCase()
-                                  if (numbers && numbers[0]) {
-                                    return code.substring(0, 2) + numbers[0].substring(0, 1)
-                                  }
-                                  return code
-                                }
-                                return 'PRO'
-                              })() : '---'
-                            }
-                          </Badge>
-                          {formValues.name && (
-                            <span className="text-xs text-muted-foreground">
-                              Derived from "{formValues.name.substring(0, 20)}..."
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold">Sequence Number</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-mono">
-                            {skuSequence.toString().padStart(3, '0')}
-                          </Badge>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSkuSequence(1)}
-                            className="h-6 text-xs"
-                          >
-                            Reset to 001
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSkuSequence(prev => prev + 1)}
-                            className="h-6 text-xs"
-                          >
-                            Next +
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Current SKU Breakdown Preview */}
-                      {getSkuBreakdown() && (
-                        <div className="pt-2 border-t">
-                          <p className="text-sm font-semibold mb-2">Current SKU Structure:</p>
-                          <div className="grid grid-cols-4 gap-1 text-center">
-                            {['Category', 'Brand', 'Product', 'Sequence'].map((label, index) => (
-                              <div key={label} className="bg-background p-2 rounded">
-                                <div className="text-xs font-medium text-muted-foreground">{label}</div>
-                                <div className="font-mono font-bold text-sm">
-                                  {getSkuBreakdown()?.[label.toLowerCase() as keyof ReturnType<typeof getSkuBreakdown>]}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2 text-center">
-                            Format: XX-XX-XXX-XXX (Category-Brand-Product-Sequence)
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-
-                  <div className="mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      <strong>Examples:</strong>
-                      <span className="ml-2 inline-flex items-center gap-2">
-                        <code className="bg-muted px-1 rounded font-mono text-xs">01-01-CHO-001</code>
-                        <span className="text-xs">(Chocolate category, brand 1, product CHocolate)</span>
-                      </span>
-                    </p>
-                  </div>
-
 
                   {/* Suggested Formats */}
                   {!editItem && formValues.name && (
@@ -776,6 +655,152 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                       </div>
                     </div>
                   )}
+
+                  {/* SKU Generation Settings */}
+
+
+
+                  {!editItem && skuFormat === 'auto' && (
+                    <div className="mt-4 p-3 bg-muted rounded-md space-y-2">
+                      {/* First Row: Components */}
+                      <div className="grid grid-cols-4 gap-2">
+                        {/* Category */}
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-muted-foreground">Category</p>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="font-mono text-xs px-1.5">
+                              {selectedCategory ? selectedCategory.categoryID.toString().padStart(2, '0') : '01'}
+                            </Badge>
+                            <span className="text-xs truncate" title={selectedCategory?.name}>
+                              {selectedCategory?.name?.substring(0, 8) || 'Cat'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Brand */}
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-muted-foreground">Brand</p>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="font-mono text-xs px-1.5">
+                              {selectedBrand ? selectedBrand.brandID.toString().padStart(2, '0') : '00'}
+                            </Badge>
+                            <span className="text-xs truncate" title={selectedBrand?.name}>
+                              {selectedBrand?.name?.substring(0, 8) || 'Brand'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Product Code */}
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-muted-foreground">Product</p>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="font-mono text-xs px-1.5">
+                              {formValues.name ?
+                                (() => {
+                                  const name = formValues.name
+                                  const numbers = name.match(/\d+/g)
+                                  const words = name.replace(/[^a-zA-Z\s]/g, '').split(' ').filter(w => w.length > 0)
+
+                                  if (words.length >= 2) {
+                                    return words.slice(0, 3).map(w => w[0]).join('').toUpperCase().padEnd(3, 'X').substring(0, 3)
+                                  } else if (words.length === 1) {
+                                    const code = words[0].substring(0, 3).toUpperCase()
+                                    if (numbers && numbers[0]) {
+                                      return code.substring(0, 2) + numbers[0].substring(0, 1)
+                                    }
+                                    return code
+                                  }
+                                  return 'PRO'
+                                })() : '---'
+                              }
+                            </Badge>
+                            <span className="text-xs truncate" title={formValues.name}>
+                              {formValues.name?.substring(0, 8) || 'Name'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Sequence */}
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-medium text-muted-foreground">Sequence</p>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="font-mono text-xs px-1.5">
+                              {skuSequence.toString().padStart(3, '0')}
+                            </Badge>
+                            <div className="flex gap-0.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSkuSequence(1)}
+                                className="h-5 text-xs p-0 px-1 hover:bg-background/50"
+                                title="Reset to 001"
+                              >
+                                Reset
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSkuSequence(prev => prev + 1)}
+                                className="h-5 text-xs p-0 px-1 hover:bg-background/50"
+                                title="Next sequence"
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Second Row: Full SKU Preview */}
+                      <div className="pt-1 border-t">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-medium">Generated SKU:</span>
+                            <span className="text-xs text-muted-foreground">
+                              {selectedCategory?.name || 'Cat'} - {selectedBrand?.name || 'Brand'} - {formValues.name?.substring(0, 15) || 'Product'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm font-mono bg-background px-2 py-1 rounded border">
+                              {formValues.sku || generateSku()}
+                            </code>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(formValues.sku || generateSku())
+                                toast.success("SKU copied!")
+                              }}
+                              className="h-6 w-6 p-0"
+                              title="Copy SKU"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+
+
+
+
+                  <div className="mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Examples:</strong>
+                      <span className="ml-2 inline-flex items-center gap-2">
+                        <code className="bg-muted px-1 rounded font-mono text-xs">01-01-CHO-001</code>
+                        <span className="text-xs">(Chocolate category, brand 1, product CHocolate)</span>
+                      </span>
+                    </p>
+                  </div>
+
+
+
 
                 </div>)}
 
