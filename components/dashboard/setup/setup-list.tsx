@@ -84,14 +84,17 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
   }
 
   const getColumns = () => {
-    return ["SL", "Name", "Description", "Status", "Actions"]
+    return ["SL", "Name", "ID", "Description", "Status", "Actions"]
   }
 
   const renderRow = (item: any, index: number) => {
+    console.log("item", item);
+
     return (
       <>
         <TableCell className="font-medium text-center">{getSerialNumber(index)}</TableCell>
         <TableCell className="font-medium">{item.name}</TableCell>
+        <TableCell className="font-medium">{item.brandID || item.categoryID}</TableCell>
         <TableCell className="max-w-md truncate">{item.description || "-"}</TableCell>
         <TableCell>
           <Badge variant={item.isActive ? "default" : "secondary"}>
@@ -217,18 +220,6 @@ export function SetupList({ type, onEdit, refresh }: SetupListProps) {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            {/* <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(item[`${type}ID`] || item.id)}
-                              disabled={isDeleting || isLoading}
-                            >
-                              {isDeleting ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-destructive" />
-                              ) : (
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              )}
-                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
