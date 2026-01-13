@@ -145,7 +145,7 @@ export function BarcodePrint({
       <div class="barcode-item">
         <div class="sku-text"> ${productSku}</div>
         <svg class="barcode-svg" id="barcode-${i}"></svg>
-        <div class="product-price">TK-${productPrice}</div>
+        <div class="product-price">MRP: ${productPrice}</div>
 
       </div>
     `).join("")}
