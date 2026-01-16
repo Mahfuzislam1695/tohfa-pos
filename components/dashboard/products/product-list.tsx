@@ -306,8 +306,8 @@ export function ProductList({ onEdit, onView, refresh }: ProductListProps) {
                             <div className="flex flex-col items-end">
                               <span
                                 className={`font-medium ${product.stockQuantity <= product.lowStockThreshold
-                                    ? "text-red-600"
-                                    : "text-foreground"
+                                  ? "text-red-600"
+                                  : "text-foreground"
                                   }`}
                               >
                                 {product.stockQuantity}

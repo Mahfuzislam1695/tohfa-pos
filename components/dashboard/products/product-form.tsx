@@ -450,40 +450,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
               </div>
 
               {/* Category - Editable for both new and edit */}
-              {/* <div className="space-y-2">
-                <Label htmlFor="categoryID">Category *</Label>
-                <Select
-                  value={formValues.categoryID?.toString() || ""}
-                  onValueChange={(value) => setValue("categoryID", value)}
-                  disabled={isLoading || categoriesLoading}
-                >
-                  <SelectTrigger className={errors.categoryID ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Loading categories...
-                      </SelectItem>
-                    ) : categories.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No categories available
-                      </SelectItem>
-                    ) : (
-                      categories.map((category) => (
-                        <SelectItem key={category.categoryID} value={category.categoryID.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.categoryID && (
-                  <p className="text-sm text-red-500 mt-1">{errors.categoryID.message}</p>
-                )}
-              </div> */}
-
-              {/* Category - Editable for both new and edit */}
               <div className="space-y-2">
                 <Label htmlFor="categoryID">Category *</Label>
                 <Select
@@ -519,37 +485,6 @@ export function ProductForm({ editItem, onSuccess, onCancel }: ProductFormProps)
                   <p className="text-sm text-red-500 mt-1">{errors.categoryID.message}</p>
                 )}
               </div>
-
-              {/* Brand - Editable for both new and edit */}
-              {/* <div className="space-y-2">
-                <Label htmlFor="brandID">Brand</Label>
-                <Select
-                  value={formValues.brandID?.toString() || ""}
-                  onValueChange={(value) => setValue("brandID", value)}
-                  disabled={isLoading || brandsLoading || editItem}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select brand (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brandsLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Loading brands...
-                      </SelectItem>
-                    ) : brands.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No brands available
-                      </SelectItem>
-                    ) : (
-                      brands.map((brand) => (
-                        <SelectItem key={brand.brandID} value={brand.brandID.toString()}>
-                          {brand.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div> */}
 
               {/* Brand - Editable for both new and edit */}
               <div className="space-y-2">
