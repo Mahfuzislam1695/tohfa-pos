@@ -278,39 +278,6 @@ export default function Pos() {
     const dueAmount = paymentStatus === 'PARTIAL' ? Math.max(0, total - receivedAmountNum) : 0
 
 
-    //     const handleCheckout = () => {
-    //     if (cart.length === 0) {
-    //         toast.error("Cart is empty!")
-    //         return
-    //     }
-
-    //     if (paymentMethod === "cash" && receivedAmountNum < total) {
-    //         toast.error("Received amount is less than total amount!")
-    //         return
-    //     }
-
-    //     const saleData = {
-    //         items: cart.map((item) => ({
-    //             productId: item.productId,
-    //             quantity: item.quantity,
-    //             unitPrice: item.unitPrice
-    //         })),
-    //         customerName: customerName || "Walk-in Customer",
-    //         customerPhone: customerPhone || "",
-    //         discount: discountAmount,
-    //         taxRate: tax,
-    //         paymentMethod: paymentMethod.toUpperCase(),
-    //         receivedAmount: paymentMethod === "cash" ? receivedAmountNum : total,
-    //         notes: notes || ""
-    //     }
-
-    //     createSale(saleData)
-    // }
-
-
-
-
-
     const handleCheckout = () => {
         if (cart.length === 0) {
             toast.error("Cart is empty!")
@@ -423,6 +390,7 @@ export default function Pos() {
                 setCustomUnit={setCustomUnit}
                 confirmAddToCart={confirmAddToCart}
                 getCompatibleUnits={getCompatibleUnits}
+                setSearchQuery={setSearchQuery}
             />
 
             <CheckoutDialog

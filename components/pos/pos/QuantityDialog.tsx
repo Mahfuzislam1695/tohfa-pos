@@ -13,6 +13,7 @@ interface QuantityDialogProps {
     selectedProduct: Product | null
     customQuantity: string
     setCustomQuantity: (quantity: string) => void
+    setSearchQuery: (searchQuery: string) => void
     customUnit: string
     confirmAddToCart: () => void
 }
@@ -25,6 +26,7 @@ export function QuantityDialog({
     setCustomQuantity,
     customUnit,
     confirmAddToCart,
+    setSearchQuery
 }: QuantityDialogProps) {
     const [unitAllowsDec, setUnitAllowsDec] = useState(false)
     const [unitName, setUnitName] = useState("")
@@ -76,6 +78,8 @@ export function QuantityDialog({
             toast.error("Quantity must be a whole number for this unit")
             return
         }
+
+        setSearchQuery("")
 
         confirmAddToCart()
     }
